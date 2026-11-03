@@ -18,7 +18,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - **WASD**: moverse (A/D = paso lateral)
 - **Ratón** o **← →**: girar
 - **Clic**: capturar el ratón (primer clic) y disparar
-- **R**: recargar
+- **R**: recargar (y reintentar al morir)
 - **Esc**: soltar el ratón
 
 ## Estado
@@ -26,7 +26,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - [x] Fase 1: raycaster básico, paredes de colores, movimiento y colisiones
 - [x] Fase 2: texturas infernales, suelo/techo, niebla roja y sprites
 - [x] Fase 3: pistola rúnica, disparo hitscan, recarga y HUD
-- [ ] Fase 4: enemigos con IA
+- [x] Fase 4: enemigos con IA (Condenado, Poseído, Demonio ígneo), daño y muerte
 - [ ] Fase 5: resto de armas
 - [ ] Fase 6: dinero, tienda y mejoras
 - [ ] Fase 7: niveles, jefe, sonido y guardado

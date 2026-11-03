@@ -13,13 +13,16 @@ export function createPlayer(cfg) {
     x: cfg.player.startX,
     y: cfg.player.startY,
     angle: cfg.player.startAngle,
+    radius: cfg.player.radius, // tamaño para colisiones (paredes, enemigos, proyectiles)
     // Vectores derivados del ángulo (se recalculan en updateVectors)
     dirX: 0, dirY: 0,       // hacia dónde mira (longitud 1)
     planeX: 0, planeY: 0,   // plano de cámara (perpendicular a dir)
     health: cfg.player.startHealth,
     armor: cfg.player.startArmor,
     money: cfg.player.startMoney,
-    stats: { shots: 0, hits: 0 }, // para el bono de precisión (Fase 6)
+    stats: { shots: 0, hits: 0, kills: 0 }, // para el bono de precisión (Fase 6)
+    hurtT: 0,               // > 0 mientras se ve el destello rojo de daño
+    dead: false,
     walkPhase: 0,           // avanza al caminar -> balanceo del arma
     moving: false,
   };
@@ -54,6 +57,10 @@ function canStand(level, x, y, r) {
       isWall(map, x - r, y + r) || isWall(map, x + r, y + r)) return false;
   for (const s of level.sprites) {
     if (s.solid && Math.hypot(x - s.x, y - s.y) < r + s.radius) return false;
+  }
+  // Los enemigos vivos también bloquean (los muertos no: e.solid = false)
+  for (const e of level.enemies) {
+    if (e.solid && Math.hypot(x - e.x, y - e.y) < r + e.radius) return false;
   }
   return true;
 }
@@ -93,6 +100,6 @@ export function updatePlayer(p, level, dt, cfg) {
   // --- Colisión eje por eje ---
   // Probamos X y Y por separado. Si chocas de frente contra una pared en
   // diagonal, el eje bloqueado se anula pero el otro sigue: te "deslizas".
-  if (canStand(level, p.x + dx, p.y, c.radius)) p.x += dx;
-  if (canStand(level, p.x, p.y + dy, c.radius)) p.y += dy;
+  if (canStand(level, p.x + dx, p.y, p.radius)) p.x += dx;
+  if (canStand(level, p.x, p.y + dy, p.radius)) p.y += dy;
 }

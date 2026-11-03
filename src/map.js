@@ -6,6 +6,8 @@
 // mapa[y][x]: la fila es Y (hacia abajo), la columna es X (hacia la derecha).
 // =============================================================
 
+import { createEnemy } from './enemies.js';
+
 export const TEST_LEVEL = {
   grid: [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -41,6 +43,17 @@ export const TEST_LEVEL = {
     { type: 'estaca', x: 6.5, y: 14.5 },
     { type: 'cristal', x: 14.5, y: 14.5 },
   ],
+  // Enemigos: zombie = Condenado, zombieRapido = Poseído, demonio = Demonio ígneo
+  enemies: [
+    { type: 'zombie', x: 9.5, y: 1.5 },
+    { type: 'demonio', x: 12.5, y: 4.5 },
+    { type: 'zombie', x: 5.5, y: 8.5 },
+    { type: 'zombie', x: 11.5, y: 7.5 },
+    { type: 'zombieRapido', x: 12.5, y: 8.5 },
+    { type: 'zombieRapido', x: 3.5, y: 12.5 },
+    { type: 'zombieRapido', x: 13.5, y: 13.5 },
+    { type: 'demonio', x: 10.5, y: 14.5 },
+  ],
 };
 
 export function createMap(grid) {
@@ -51,12 +64,14 @@ export function createMap(grid) {
   };
 }
 
-// Construye un nivel jugable: el mapa + los sprites con sus propiedades
-// (solid, radius) copiadas desde config.js.
+// Construye un nivel jugable: el mapa, los sprites con sus propiedades
+// (solid, radius) copiadas desde config.js, los enemigos y los proyectiles.
 export function createLevel(def, cfg) {
   return {
     map: createMap(def.grid),
     sprites: def.sprites.map((s) => ({ ...cfg.sprites[s.type], ...s })),
+    enemies: (def.enemies ?? []).map((e) => createEnemy(e.type, e.x, e.y, cfg)),
+    projectiles: [],
   };
 }
 

@@ -11,5 +11,8 @@ Todo el arte del juego se genera por código en `src/textures.js`. No se usan im
 | Lava (pared 5) | Textura 64×64, animada | Ruido fBm mapeado a un degradado negro → rojo → amarillo |
 | Suelo de basalto / techo de roca | Texturas 64×64 | Baldosas + ruido + grietas |
 | Brasero (4 fotogramas), estaca con calavera, cristal de alma | Sprites 64×64 | Dibujados con la API de canvas 2D y convertidos a píxeles |
+| Chispa, sangre, bola de fuego | Sprites 64×64 animados | Círculos y partículas con la API de canvas 2D |
+| Condenado, Poseído, Demonio ígneo | Sprites 64×64, 7 fotogramas | Una función de humanoide parametrizada (colores, grosor, cuernos, pose) |
+| Pistola rúnica (normal y con fogonazo) | Imagen 160×140 | Polígonos con la API de canvas 2D |
 
 Si en el futuro se añaden assets externos, deben tener licencia **CC0** y su fuente se anotará en esta tabla.

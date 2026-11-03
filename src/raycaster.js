@@ -222,8 +222,9 @@ function drawSprites(r, player, level, time, shader) {
   const half = H / 2;
   const { x: px, y: py, dirX, dirY, planeX, planeY } = player;
 
-  // Dibujamos de lejos a cerca: así lo cercano tapa a lo lejano ("algoritmo del pintor")
-  const sorted = level.sprites
+  // Decoración, efectos, enemigos y proyectiles se dibujan igual: son sprites.
+  // De lejos a cerca: así lo cercano tapa a lo lejano ("algoritmo del pintor").
+  const sorted = [...level.sprites, ...level.enemies, ...level.projectiles]
     .map((s) => ({ s, d: (s.x - px) ** 2 + (s.y - py) ** 2 }))
     .sort((a, b) => b.d - a.d);
 

@@ -33,6 +33,43 @@ export const CONFIG = {
     maxArmor: 100,
     startArmor: 0,
     startMoney: 0,
+    armorAbsorb: 0.33, // fracción del daño que absorbe la armadura (mientras quede)
+    hurtFlash: 0.35,   // segundos que dura el destello rojo al recibir daño
+  },
+
+  // Enemigos. speed en casillas/s, radius = tamaño de colisión,
+  // attackRange = distancia desde la que ataca, attackWindup = segundos
+  // que "avisa" antes de golpear (da tiempo a reaccionar),
+  // attackCooldown = segundos entre ataques, sightRange = hasta dónde ve.
+  enemies: {
+    zombie: {
+      name: 'Condenado', health: 45, speed: 1.1, radius: 0.28,
+      damage: 10, attackRange: 0.85, attackWindup: 0.35, attackCooldown: 1.1,
+      sightRange: 9, ranged: false,
+    },
+    zombieRapido: {
+      name: 'Poseído', health: 25, speed: 2.4, radius: 0.25,
+      damage: 6, attackRange: 0.8, attackWindup: 0.2, attackCooldown: 0.7,
+      sightRange: 11, ranged: false,
+    },
+    demonio: {
+      name: 'Demonio ígneo', health: 70, speed: 1.2, radius: 0.32,
+      damage: 14, attackRange: 7, attackWindup: 0.5, attackCooldown: 2.2,
+      sightRange: 12, ranged: true,
+      preferDist: 3.5,      // se queda a esta distancia para disparar
+      projectileSpeed: 5,   // casillas/s de la bola de fuego
+    },
+  },
+
+  // Comportamiento general de la IA
+  ai: {
+    patrolSpeed: 0.45,    // fracción de la velocidad al patrullar
+    patrolRadius: 3,      // casillas alrededor de su punto de inicio
+    loseSightTime: 4,     // segundos sin verte antes de rendirse
+    painTime: 0.18,       // segundos que se queda aturdido al recibir un disparo
+    hearRange: 9,         // los disparos alertan a enemigos a esta distancia
+    flowInterval: 0.3,    // cada cuánto se recalcula el mapa de rutas (s)
+    deathFrameTime: 0.15, // duración de cada fotograma de la muerte
   },
 
   // Armas. damage = daño por impacto, fireRate = disparos por segundo,
@@ -85,5 +122,6 @@ export const CONFIG = {
     estaca: { solid: true, radius: 0.15 },
     cristal: { solid: false, radius: 0 },
     chispa: { solid: false, radius: 0 }, // impacto de bala (temporal)
+    sangre: { solid: false, radius: 0 }, // impacto en enemigo (temporal)
   },
 };

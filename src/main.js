@@ -4,12 +4,13 @@
 
 import { CONFIG } from './config.js';
 import { TEST_LEVEL, createLevel } from './map.js';
-import { initInput, endFrame } from './input.js';
+import { initInput, endFrame, wasPressed } from './input.js';
 import { createPlayer, updatePlayer } from './player.js';
 import { buildAssets } from './textures.js';
 import { createRenderer, renderScene } from './raycaster.js';
 import { createWeaponState, updateWeapon, updateEffects } from './weapons.js';
-import { drawWeapon, drawCrosshair, drawHUD } from './hud.js';
+import { updateEnemies, updateProjectiles, alertEnemies } from './enemies.js';
+import { drawWeapon, drawCrosshair, drawHUD, drawDamage, drawEnemyCounter } from './hud.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('overlay');
@@ -19,19 +20,24 @@ const ctx = canvas.getContext('2d');
 canvas.width = CONFIG.render.width;
 canvas.height = CONFIG.render.height;
 
-const level = createLevel(TEST_LEVEL, CONFIG);
-const player = createPlayer(CONFIG);
-const weapon = createWeaponState(CONFIG, 'pistola');
 const assets = buildAssets(); // texturas, sprites y armas generados por código
 const renderer = createRenderer(ctx, CONFIG, assets);
 initInput(canvas, overlay);
 
+// Estado de la partida. Se agrupa para poder reiniciarla de golpe.
+let level, player, weapon;
+function newGame() {
+  level = createLevel(TEST_LEVEL, CONFIG);
+  player = createPlayer(CONFIG);
+  weapon = createWeaponState(CONFIG, 'pistola');
+  // Expuesto solo para depurar desde la consola del navegador.
+  window.__game = { player, level, weapon, CONFIG };
+}
+newGame();
+
 // Contador de FPS suavizado (media móvil) para que no parpadee.
 let fps = 60;
 let lastTime = performance.now();
-
-// Expuesto solo para depurar desde la consola del navegador.
-window.__game = { player, level, weapon, CONFIG };
 
 function frame(now) {
   // DELTA TIME: segundos desde el frame anterior. Multiplicar velocidades
@@ -43,16 +49,28 @@ function frame(now) {
   const time = now / 1000;
 
   // --- Lógica ---
-  updatePlayer(player, level, dt, CONFIG);
-  updateWeapon(weapon, dt, player, level, CONFIG);
+  if (!player.dead) {
+    updatePlayer(player, level, dt, CONFIG);
+    const shot = updateWeapon(weapon, dt, player, level, CONFIG);
+    if (shot) alertEnemies(level, player, CONFIG); // el ruido del disparo
+  } else if (wasPressed('KeyR')) {
+    newGame();
+  }
+  updateEnemies(level, player, dt, CONFIG);
+  updateProjectiles(level, player, dt, CONFIG);
   updateEffects(level, dt);
+  player.hurtT = Math.max(0, player.hurtT - dt);
 
   // --- Dibujo ---
   renderer.flash = weapon.flashT > 0 ? CONFIG.fx.flashLight : 0;
   renderScene(renderer, player, level, time);
-  drawWeapon(ctx, weapon, player, assets, CONFIG);
-  drawCrosshair(ctx, weapon, CONFIG);
+  if (!player.dead) {
+    drawWeapon(ctx, weapon, player, assets, CONFIG);
+    drawCrosshair(ctx, weapon, CONFIG);
+  }
+  drawDamage(ctx, player, CONFIG);
   drawHUD(ctx, player, weapon, CONFIG, time);
+  drawEnemyCounter(ctx, level, CONFIG);
 
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';

@@ -302,6 +302,152 @@ function sparkFrames() {
   );
 }
 
+// Salpicadura de sangre al impactar a un enemigo (3 fotogramas).
+function bloodFrames() {
+  return [6, 4, 2].map((radius) =>
+    drawSprite((g) => {
+      const rand = mulberry32(300 + radius);
+      g.fillStyle = '#8a0c08';
+      for (let i = 0; i < 7; i++) {
+        const a = rand() * Math.PI * 2;
+        const d = rand() * radius * 1.8;
+        g.fillRect(32 + Math.cos(a) * d - 1, 32 + Math.sin(a) * d - 1, 3, 3);
+      }
+      g.fillStyle = '#c01810';
+      g.beginPath(); g.arc(32, 32, radius * 0.7, 0, Math.PI * 2); g.fill();
+    })
+  );
+}
+
+// Bola de fuego del demonio (2 fotogramas que se alternan).
+function fireballFrames() {
+  return [0, 1].map((f) =>
+    drawSprite((g) => {
+      const rand = mulberry32(400 + f);
+      g.fillStyle = '#c02a08';
+      for (let i = 0; i < 8; i++) {
+        const a = rand() * Math.PI * 2;
+        g.beginPath(); g.arc(32 + Math.cos(a) * 5, 32 + Math.sin(a) * 5, 3 + rand() * 2, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = '#ff7a1a';
+      g.beginPath(); g.arc(32, 32, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#ffe680';
+      g.beginPath(); g.arc(32 - f, 32 - f, 3, 0, Math.PI * 2); g.fill();
+    }, true)
+  );
+}
+
+// ---------- Enemigos ----------
+// Todos los enemigos humanoides se dibujan con la misma función, cambiando
+// colores y proporciones. Cada enemigo tiene 7 fotogramas:
+export const ENEMY_FRAME = { WALK1: 0, WALK2: 1, ATTACK: 2, PAIN: 3, DEATH1: 4, DEATH2: 5, CORPSE: 6 };
+
+const ENEMY_LOOKS = {
+  // Condenado: alma en pena lenta, piel gris verdosa y harapos
+  zombie: { skin: '#7d8a6a', skinDark: '#56604a', cloth: '#4a3a2e', eye: '#ffde3a', width: 1, horns: false },
+  // Poseído: delgado, piel rojiza, ojos blancos
+  zombieRapido: { skin: '#a8645a', skinDark: '#7a443c', cloth: '#2e2626', eye: '#ffffff', width: 0.8, horns: false },
+  // Demonio ígneo: corpulento, rojo, con cuernos
+  demonio: { skin: '#b02a1a', skinDark: '#7a1a10', cloth: '#3a1410', eye: '#ffd040', width: 1.2, horns: true },
+};
+
+// pose: { legs: -1..1, arms: 'reach' | 'up', pain: bool, death: 0..3, fireball: bool }
+function drawHumanoid(g, look, pose) {
+  const w = look.width;
+  const cx = 32;
+
+  if (pose.death >= 3) {
+    // Charco de sangre debajo del cadáver
+    g.fillStyle = '#4a0606';
+    g.beginPath(); g.ellipse(32, 60, 22, 3.5, 0, 0, Math.PI * 2); g.fill();
+  }
+  g.save();
+  if (pose.death === 1) {
+    // Cayendo de rodillas: más bajo y aplastado
+    g.translate(0, 64); g.scale(1, 0.78); g.translate(0, -64);
+  } else if (pose.death >= 2) {
+    // Tumbado: rotamos casi 90° alrededor de los pies y lo encogemos
+    g.translate(46, 61); g.rotate(-Math.PI / 2 * 0.95); g.scale(0.62, 0.62); g.translate(-32, -63);
+  }
+
+  // Piernas (se alternan al caminar)
+  g.fillStyle = look.skinDark;
+  const legW = 5 * w;
+  g.fillRect(cx - 6 * w + pose.legs * 3 - legW / 2, 40, legW, 23);
+  g.fillRect(cx + 6 * w - pose.legs * 3 - legW / 2, 40, legW, 23);
+
+  // Torso con harapos
+  g.fillStyle = look.cloth;
+  g.fillRect(cx - 10 * w, 22, 20 * w, 20);
+  g.fillStyle = look.skin;
+  g.fillRect(cx - 3 * w, 22, 6 * w, 9); // piel visible en el pecho
+  g.fillStyle = look.cloth;
+  for (let i = 0; i < 5; i++) g.fillRect(cx - 10 * w + i * 4 * w, 42, 3 * w, 2 + (i % 2) * 3); // bordes rotos
+
+  // Brazos
+  g.fillStyle = look.skin;
+  if (pose.arms === 'up') {
+    g.fillRect(cx - 15 * w, 6, 5 * w, 18);
+    g.fillRect(cx + 10 * w, 6, 5 * w, 18);
+    g.beginPath(); g.arc(cx - 12.5 * w, 6, 3.5 * w, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(cx + 12.5 * w, 6, 3.5 * w, 0, Math.PI * 2); g.fill();
+  } else {
+    // Brazos estirados hacia el jugador: cortos (perspectiva) con manos grandes
+    g.fillRect(cx - 15 * w, 23, 5 * w, 12);
+    g.fillRect(cx + 10 * w, 23, 5 * w, 12);
+    g.beginPath(); g.arc(cx - 12.5 * w, 35, 4 * w, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(cx + 12.5 * w, 35, 4 * w, 0, Math.PI * 2); g.fill();
+  }
+
+  // Cabeza, cuernos y ojos brillantes
+  if (look.horns) {
+    g.fillStyle = '#d8c8a0';
+    poly(g, [[cx - 6, 10], [cx - 11, 0], [cx - 3, 8]], '#d8c8a0');
+    poly(g, [[cx + 6, 10], [cx + 11, 0], [cx + 3, 8]], '#d8c8a0');
+  }
+  g.fillStyle = look.skin;
+  g.beginPath(); g.arc(cx, 15, 7 * Math.max(1, w * 0.9), 0, Math.PI * 2); g.fill();
+  g.fillStyle = look.skinDark;
+  g.fillRect(cx - 4, 18, 8, 2); // boca
+  if (pose.death === 0) {
+    g.fillStyle = look.eye;
+    g.fillRect(cx - 4, 13, 2, 2);
+    g.fillRect(cx + 2, 13, 2, 2);
+  }
+
+  // Bola de fuego en las manos (demonio atacando)
+  if (pose.fireball) {
+    g.fillStyle = '#ff7a1a';
+    g.beginPath(); g.arc(cx, 4, 6, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#ffe680';
+    g.beginPath(); g.arc(cx, 4, 3, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+
+  // Dolor: tinte blanco encima de lo ya dibujado (source-atop = solo donde hay píxeles)
+  if (pose.pain) {
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = 'rgba(255, 230, 220, 0.45)';
+    g.fillRect(0, 0, 64, 64);
+    g.globalCompositeOperation = 'source-over';
+  }
+}
+
+function enemyFrames(type) {
+  const look = ENEMY_LOOKS[type];
+  const ranged = type === 'demonio';
+  const poses = [
+    { legs: -1, arms: 'reach', death: 0 },                       // WALK1
+    { legs: 1, arms: 'reach', death: 0 },                        // WALK2
+    { legs: 0, arms: 'up', death: 0, fireball: ranged },         // ATTACK
+    { legs: 0, arms: 'reach', death: 0, pain: true },            // PAIN
+    { legs: 0, arms: 'up', death: 1, pain: true },               // DEATH1
+    { legs: 0, arms: 'up', death: 2 },                           // DEATH2
+    { legs: 0, arms: 'up', death: 3 },                           // CORPSE
+  ];
+  return poses.map((pose) => drawSprite((g) => drawHumanoid(g, look, pose)));
+}
+
 // ---------- Armas en primera persona ("view model") ----------
 // Se dibujan encima de la escena con drawImage. Cada arma tiene dos
 // imágenes: normal y con fogonazo.
@@ -395,6 +541,11 @@ export function buildAssets() {
       estaca: skullPike(),
       cristal: soulCrystal(),
       chispa: sparkFrames(),
+      sangre: bloodFrames(),
+      bolaFuego: fireballFrames(),
+      zombie: enemyFrames('zombie'),
+      zombieRapido: enemyFrames('zombieRapido'),
+      demonio: enemyFrames('demonio'),
     },
     viewModels: buildViewModels(),
   };

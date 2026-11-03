@@ -11,6 +11,7 @@
 
 import { isDown, wasPressed } from './input.js';
 import { castRay } from './map.js';
+import { hitscanEnemy, damageEnemy, spawnEffect } from './enemies.js';
 
 export function createWeaponState(cfg, id = 'pistola') {
   const def = cfg.weapons[id];
@@ -77,11 +78,12 @@ export function updateWeapon(w, dt, player, level, cfg) {
     return null;
   }
 
-  return fire(w, player, level, fx);
+  return fire(w, player, level, cfg);
 }
 
-function fire(w, player, level, fx) {
+function fire(w, player, level, cfg) {
   const def = w.def;
+  const fx = cfg.fx;
   w.mag--;
   w.cooldown = 1 / def.fireRate; // cadencia: disparos por segundo -> segundos entre disparos
   w.recoilT = fx.recoilTime;
@@ -92,25 +94,24 @@ function fire(w, player, level, fx) {
   const angle = player.angle + (Math.random() * 2 - 1) * def.spread;
   const dx = Math.cos(angle);
   const dy = Math.sin(angle);
-  const hit = castRay(level.map, player.x, player.y, dx, dy, def.range);
+  // 1) ¿Dónde choca con la pared?
+  const wall = castRay(level.map, player.x, player.y, dx, dy, def.range);
+  // 2) ¿Hay algún enemigo en la línea ANTES de esa pared?
+  const target = hitscanEnemy(level, player.x, player.y, dx, dy, wall.dist);
 
-  if (hit.hit) {
+  if (target) {
+    damageEnemy(target.enemy, def.damage, player, cfg);
+    player.stats.hits++;
+    // Sangre entre el enemigo y el jugador para que se dibuje delante de él
+    const d = target.dist - target.enemy.radius;
+    spawnEffect(level, 'sangre', player.x + dx * d, player.y + dy * d, cfg.fx.sparkLife);
+  } else if (wall.hit) {
     // Chispa un poco ANTES de la pared, para que no quede escondida detrás
     // de ella en el z-buffer.
-    level.sprites.push({
-      type: 'chispa',
-      x: hit.x - dx * 0.05,
-      y: hit.y - dy * 0.05,
-      solid: false,
-      radius: 0,
-      life: fx.sparkLife,
-      maxLife: fx.sparkLife,
-      frame: 0,
-    });
+    spawnEffect(level, 'chispa', wall.x - dx * 0.05, wall.y - dy * 0.05, cfg.fx.sparkLife);
   }
 
-  // La Fase 4 usará esto para ver si un enemigo está más cerca que la pared.
-  w.lastShot = { x: player.x, y: player.y, dx, dy, wallDist: hit.dist, damage: def.damage };
+  w.lastShot = { x: player.x, y: player.y, dx, dy, hit: target?.enemy ?? null };
   return w.lastShot;
 }
 

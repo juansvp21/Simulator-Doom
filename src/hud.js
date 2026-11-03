@@ -62,6 +62,41 @@ export function drawCrosshair(ctx, weapon, cfg) {
 }
 
 // ---------------------------------------------------------
+// DAÑO Y MUERTE
+// Destello rojo que se desvanece cuando te golpean, y pantalla de muerte.
+// ---------------------------------------------------------
+export function drawDamage(ctx, player, cfg) {
+  const W = cfg.render.width;
+  const H = cfg.render.height;
+  if (player.hurtT > 0) {
+    ctx.fillStyle = `rgba(200, 0, 0, ${(player.hurtT / cfg.player.hurtFlash) * 0.45})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  if (player.dead) {
+    ctx.fillStyle = 'rgba(60, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff3a1a';
+    ctx.font = 'bold 40px monospace';
+    ctx.fillText('HAS CAÍDO', W / 2, H / 2 - 20);
+    ctx.fillStyle = '#ffcc66';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('Pulsa R para volver a intentarlo', W / 2, H / 2 + 14);
+    ctx.textAlign = 'left';
+  }
+}
+
+// Contador de enemigos en la esquina superior derecha
+export function drawEnemyCounter(ctx, level, cfg) {
+  const alive = level.enemies.filter((e) => e.state !== 'dead').length;
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillStyle = alive ? '#ffcc66' : '#7aff7a';
+  ctx.fillText(alive ? `ENEMIGOS ${alive}/${level.enemies.length}` : 'ZONA LIMPIA', cfg.render.width - 8, 16);
+  ctx.textAlign = 'left';
+}
+
+// ---------------------------------------------------------
 // BARRA INFERIOR
 // ---------------------------------------------------------
 export function drawHUD(ctx, player, weapon, cfg, time) {
