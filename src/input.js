@@ -12,6 +12,7 @@
 const keys = new Set();    // teclas pulsadas ahora mismo
 const pressed = new Set(); // teclas que se pulsaron desde el último frame
 let mouseDX = 0;           // movimiento horizontal acumulado del ratón
+let wheel = 0;             // giros de la rueda del ratón (+1 abajo, -1 arriba)
 let locked = false;        // ¿el ratón está capturado (Pointer Lock)?
 
 function press(code) {
@@ -51,6 +52,10 @@ export function initInput(canvas, overlay) {
   document.addEventListener('mousemove', (e) => {
     if (locked) mouseDX += e.movementX;
   });
+
+  document.addEventListener('wheel', (e) => {
+    if (locked) wheel += Math.sign(e.deltaY);
+  });
 }
 
 export function isDown(code) {
@@ -71,4 +76,11 @@ export function consumeMouseDX() {
   const dx = mouseDX;
   mouseDX = 0;
   return dx;
+}
+
+// Devuelve los giros de la rueda desde la última llamada y los reinicia.
+export function consumeWheel() {
+  const w = wheel;
+  wheel = 0;
+  return w;
 }

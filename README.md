@@ -19,6 +19,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - **Ratón** o **← →**: girar
 - **Clic**: capturar el ratón (primer clic) y disparar
 - **R**: recargar (y reintentar al morir)
+- **1-5** o **rueda del ratón**: cambiar de arma
 - **Esc**: soltar el ratón
 
 ## Estado
@@ -27,7 +28,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - [x] Fase 2: texturas infernales, suelo/techo, niebla roja y sprites
 - [x] Fase 3: pistola rúnica, disparo hitscan, recarga y HUD
 - [x] Fase 4: enemigos con IA (Condenado, Poseído, Demonio ígneo), daño y muerte
-- [ ] Fase 5: resto de armas
+- [x] Fase 5: escopeta, ametralladora, lanzacohetes, Cetro del Abismo y cambio de arma
 - [ ] Fase 6: dinero, tienda y mejoras
 - [ ] Fase 7: niveles, jefe, sonido y guardado
 - [ ] Fase 8: pulido

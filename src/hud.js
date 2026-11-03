@@ -11,10 +11,12 @@
 //  - Retroceso: sube de golpe al disparar y baja suavemente
 //  - Recarga: baja fuera de la pantalla y vuelve (curva seno de 0 a π)
 // ---------------------------------------------------------
-export function drawWeapon(ctx, weapon, player, assets, cfg) {
+//  - Cambio de arma: baja la vieja y sube la nueva (forma de "V" en el tiempo)
+export function drawWeapon(ctx, arsenal, player, assets, cfg) {
   const W = cfg.render.width;
   const H = cfg.render.height;
   const fx = cfg.fx;
+  const weapon = arsenal.weapons[arsenal.current];
   const art = assets.viewModels[weapon.id];
   const img = weapon.flashT > 0 ? art.flash : art.idle;
 
@@ -28,6 +30,11 @@ export function drawWeapon(ctx, weapon, player, assets, cfg) {
     const progress = 1 - weapon.reloadT / weapon.def.reloadTime; // 0 -> 1
     reloadDrop = Math.sin(progress * Math.PI) * 90;
   }
+  if (arsenal.switchT > 0) {
+    // 1 -> 0 -> 1 a lo largo del cambio: |2t - 1| invertido
+    const t = arsenal.switchT / fx.switchTime;
+    reloadDrop += (1 - Math.abs(2 * t - 1)) * 160;
+  }
 
   // El arte se agranda sin suavizar para mantener los píxeles nítidos
   const scale = cfg.fx.weaponScale;
@@ -36,7 +43,34 @@ export function drawWeapon(ctx, weapon, player, assets, cfg) {
   const x = Math.round(W / 2 - w / 2 + 40 + bobX);
   const y = Math.round(H - cfg.hud.height - h + 50 + bobY - recoil + reloadDrop);
   ctx.imageSmoothingEnabled = false;
+
+  // Rayo del Cetro del Abismo: del orbe al centro de la pantalla, se desvanece
+  if (weapon.beamT > 0) {
+    const a = weapon.beamT / fx.beamTime;
+    const fromX = x + w / 2;
+    const fromY = y + 30 * scale;
+    const toX = W / 2;
+    const toY = H / 2;
+    ctx.lineCap = 'round';
+    for (const [width, color] of [[14, `rgba(150, 40, 220, ${0.5 * a})`], [6, `rgba(210, 130, 255, ${a})`], [2, `rgba(255, 255, 255, ${a})`]]) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width * a + 1;
+      ctx.beginPath(); ctx.moveTo(fromX, fromY); ctx.lineTo(toX, toY); ctx.stroke();
+    }
+  }
   ctx.drawImage(img, x, y, w, h);
+}
+
+// Aviso temporal en la parte superior (p. ej. al recoger un arma)
+export function drawMessage(ctx, text, alpha, cfg) {
+  if (!text || alpha <= 0) return;
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * alpha})`;
+  ctx.fillText(text, cfg.render.width / 2 + 1, 41);
+  ctx.fillStyle = `rgba(255, 216, 74, ${alpha})`;
+  ctx.fillText(text, cfg.render.width / 2, 40);
+  ctx.textAlign = 'left';
 }
 
 // ---------------------------------------------------------
@@ -99,7 +133,8 @@ export function drawEnemyCounter(ctx, level, cfg) {
 // ---------------------------------------------------------
 // BARRA INFERIOR
 // ---------------------------------------------------------
-export function drawHUD(ctx, player, weapon, cfg, time) {
+export function drawHUD(ctx, player, arsenal, cfg, time) {
+  const weapon = arsenal.weapons[arsenal.current];
   const W = cfg.render.width;
   const H = cfg.render.height;
   const h = cfg.hud.height;
@@ -139,10 +174,25 @@ export function drawHUD(ctx, player, weapon, cfg, time) {
   box(3, 'MUNICIÓN', `${weapon.mag} / ${weapon.reserve}`, weapon.mag === 0 ? '#ff2a10' : '#ffcc66');
   box(4, 'ORO', `${player.money}`, '#ffd84a');
 
-  // El nombre del arma es largo: fuente más pequeña
+  // Nombre del arma (fuente pequeña: algunos nombres son largos)
+  const armaX = (sections[2] + sections[3]) / 2;
   ctx.fillStyle = '#ffcc66';
-  ctx.font = 'bold 12px monospace';
-  ctx.fillText(weapon.def.name, (sections[2] + sections[3]) / 2, top + 34);
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText(weapon.def.name, armaX, top + 27);
+
+  // Ranuras 1-5: actual en rojo, las que tienes en amarillo, las demás apagadas
+  ctx.font = 'bold 10px monospace';
+  for (const [id, def] of Object.entries(cfg.weapons)) {
+    const sx = armaX + (def.slot - 3) * 16;
+    const owned = Boolean(arsenal.weapons[id]);
+    const isCurrent = arsenal.current === id;
+    if (isCurrent) {
+      ctx.fillStyle = '#8a1e12';
+      ctx.fillRect(sx - 6, top + 31, 12, 11);
+    }
+    ctx.fillStyle = isCurrent ? '#fff2c0' : owned ? '#ffcc66' : '#4a2a20';
+    ctx.fillText(String(def.slot), sx, top + 40);
+  }
 
   // Mensajes sobre la barra
   ctx.font = 'bold 14px monospace';

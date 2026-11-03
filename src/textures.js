@@ -304,7 +304,8 @@ function sparkFrames() {
 
 // Salpicadura de sangre al impactar a un enemigo (3 fotogramas).
 function bloodFrames() {
-  return [6, 4, 2].map((radius) =>
+  // Pequeña a propósito: la escopeta crea 7 a la vez y de cerca se ven enormes
+  return [4, 3, 1.5].map((radius) =>
     drawSprite((g) => {
       const rand = mulberry32(300 + radius);
       g.fillStyle = '#8a0c08';
@@ -512,18 +513,181 @@ function drawPistol(g, withFlash) {
   }
 }
 
+// Fogonazo genérico: estrella irregular centrada en (cx, cy)
+function muzzleFlash(g, cx, cy, size, colors = ['#ff7a1a', '#ffe680']) {
+  const rand = mulberry32(Math.round(cx * 7 + size));
+  const pts = [];
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * Math.PI * 2;
+    const r = i % 2 ? size * 0.4 + rand() * size * 0.2 : size + rand() * size * 0.5;
+    pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.8]);
+  }
+  poly(g, pts, colors[0]);
+  g.fillStyle = colors[1];
+  g.beginPath(); g.ellipse(cx, cy, size * 0.45, size * 0.38, 0, 0, Math.PI * 2); g.fill();
+}
+
+// Antebrazo con guante de cuero (compartido por todas las armas)
+function drawArm(g, x = 0) {
+  poly(g, [[38 + x, 140], [122 + x, 140], [108 + x, 96], [52 + x, 96]], '#3a2418');
+  poly(g, [[46 + x, 140], [62 + x, 140], [60 + x, 100], [54 + x, 100]], '#5a3826');
+}
+
+// Escopeta de Azufre: dos cañones vistos desde atrás + guardamanos de madera
+function drawShotgun(g, withFlash) {
+  if (withFlash) muzzleFlash(g, 80, 16, 30);
+  drawArm(g);
+  poly(g, [[56, 78], [78, 78], [76, 20], [66, 20]], '#3a3a40');
+  poly(g, [[82, 78], [104, 78], [94, 20], [84, 20]], '#3a3a40');
+  poly(g, [[58, 78], [62, 78], [67, 20], [66, 20]], '#6a6a72'); // brillo izq.
+  poly(g, [[84, 78], [88, 78], [86, 20], [84, 20]], '#6a6a72'); // brillo der.
+  g.fillStyle = '#c8a040';
+  g.fillRect(58, 56, 44, 4); // anillo de latón
+  poly(g, [[50, 78], [110, 78], [114, 108], [46, 108]], '#5a3418'); // madera
+  g.fillStyle = '#3e220e';
+  for (let y = 84; y < 106; y += 6) g.fillRect(52, y, 56, 1); // vetas
+  g.fillStyle = withFlash ? '#ffe060' : '#ffb020';
+  g.fillRect(77, 64, 6, 6); // runa de azufre
+}
+
+// Ametralladora Infernal: cuerpo cuadrado, cañón con agujeros y tambor lateral
+function drawMachineGun(g, withFlash) {
+  if (withFlash) muzzleFlash(g, 80, 8, 22);
+  drawArm(g, 6);
+  g.fillStyle = '#2a2628';
+  g.fillRect(70, 8, 20, 40); // cañón con funda
+  g.fillStyle = '#0e0c0c';
+  for (let y = 14; y < 44; y += 8) { g.fillRect(74, y, 4, 4); g.fillRect(82, y, 4, 4); }
+  g.fillStyle = '#3e3a3c';
+  g.fillRect(56, 44, 48, 42); // cuerpo
+  g.fillStyle = '#5e585a';
+  g.fillRect(56, 44, 48, 4);
+  g.fillStyle = '#ff4a18';
+  for (let x = 62; x < 100; x += 8) g.fillRect(x, 64, 4, 10); // rejillas que brillan
+  // Tambor de munición
+  g.fillStyle = '#5a2a20';
+  g.beginPath(); g.arc(46, 78, 18, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#7a4a30';
+  g.beginPath(); g.arc(46, 78, 10, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#2a1410';
+  g.beginPath(); g.arc(46, 78, 4, 0, Math.PI * 2); g.fill();
+}
+
+// Lanzacohetes de Brasa: tubo grande con la boca visible arriba
+function drawRocketLauncher(g, withFlash) {
+  drawArm(g, -10);
+  poly(g, [[64, 26], [112, 26], [128, 140], [48, 140]], '#5a4a38'); // tubo
+  poly(g, [[66, 26], [74, 26], [62, 140], [52, 140]], '#7a6a52');   // brillo
+  g.fillStyle = '#b08a40';
+  g.fillRect(58, 60, 62, 6);  // anillos de latón
+  g.fillRect(53, 100, 72, 6);
+  g.fillStyle = '#7a5a30';
+  g.beginPath(); g.ellipse(88, 26, 25, 11, 0, 0, Math.PI * 2); g.fill(); // borde de la boca
+  g.fillStyle = '#140a08';
+  g.beginPath(); g.ellipse(88, 26, 19, 8, 0, 0, Math.PI * 2); g.fill(); // interior
+  g.fillStyle = '#ff6a1a';
+  g.beginPath(); g.arc(88, 27, 4, 0, Math.PI * 2); g.fill();             // brasa del cohete
+  if (withFlash) muzzleFlash(g, 88, 18, 32);
+}
+
+// Cetro del Abismo: bastón con un orbe violeta entre garras
+function drawScepter(g, withFlash) {
+  if (withFlash) {
+    g.fillStyle = 'rgba(200, 100, 255, 0.5)';
+    g.beginPath(); g.arc(80, 30, 30, 0, Math.PI * 2); g.fill();
+  }
+  poly(g, [[74, 140], [86, 140], [84, 44], [76, 44]], '#3a2a3a'); // vara
+  g.fillStyle = '#5a4a5a';
+  g.fillRect(77, 44, 2, 96);
+  drawArm(g, 0);
+  // Garras que sujetan el orbe
+  poly(g, [[66, 48], [72, 46], [66, 22], [62, 30]], '#8a7a9a');
+  poly(g, [[94, 48], [88, 46], [94, 22], [98, 30]], '#8a7a9a');
+  // Orbe
+  g.fillStyle = '#5a1490';
+  g.beginPath(); g.arc(80, 30, 14, 0, Math.PI * 2); g.fill();
+  g.fillStyle = withFlash ? '#f0c0ff' : '#c060ff';
+  g.beginPath(); g.arc(80, 30, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#ffffff';
+  g.beginPath(); g.arc(77, 27, 3, 0, Math.PI * 2); g.fill();
+}
+
 function buildViewModels() {
+  const pair = (draw) => ({
+    idle: makeCanvas(160, 140, (g) => draw(g, false)),
+    flash: makeCanvas(160, 140, (g) => draw(g, true)),
+  });
   return {
-    pistola: {
-      idle: makeCanvas(160, 140, (g) => drawPistol(g, false)),
-      flash: makeCanvas(160, 140, (g) => drawPistol(g, true)),
-    },
+    pistola: pair(drawPistol),
+    escopeta: pair(drawShotgun),
+    ametralladora: pair(drawMachineGun),
+    lanzacohetes: pair(drawRocketLauncher),
+    especial: pair(drawScepter),
   };
+}
+
+// Cohete en vuelo (visto desde atrás: ojiva + llama)
+function rocketFrames() {
+  return [0, 1].map((f) =>
+    drawSprite((g) => {
+      g.fillStyle = '#ff7a1a';
+      g.beginPath(); g.arc(32, 32, 5 + f, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#ffe680';
+      g.beginPath(); g.arc(32, 32, 2.5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#6a5a48';
+      g.fillRect(29, 24, 6, 3); // aleta
+    }, true)
+  );
+}
+
+// Explosión: 4 fotogramas que crecen y se apagan. Ocupa todo el sprite
+// (1 casilla de alto), centrada a la altura de los ojos.
+function explosionFrames() {
+  return [
+    [12, '#ffe680', '#ff9a2a'],
+    [22, '#ffb040', '#e04a10'],
+    [28, '#e05a10', '#801808'],
+    [30, '#701808', '#301008'],
+  ].map(([radius, inner, outer], f) =>
+    drawSprite((g) => {
+      const rand = mulberry32(500 + f);
+      g.fillStyle = outer;
+      for (let i = 0; i < 10; i++) {
+        const a = rand() * Math.PI * 2;
+        const d = rand() * radius * 0.5;
+        g.beginPath(); g.arc(32 + Math.cos(a) * d, 32 + Math.sin(a) * d, radius * 0.55, 0, Math.PI * 2); g.fill();
+      }
+      g.fillStyle = inner;
+      g.beginPath(); g.arc(32, 32, radius * 0.5, 0, Math.PI * 2); g.fill();
+    }, true)
+  );
+}
+
+// Objetos del suelo: el arma en miniatura apoyada en el piso.
+function weaponPickup(viewModel) {
+  return [drawSprite((g) => g.drawImage(viewModel.idle, 0, 0, 160, 140, 14, 34, 36, 31))];
+}
+
+function ammoBox() {
+  return [
+    drawSprite((g) => {
+      g.fillStyle = '#6a4a28';
+      g.fillRect(18, 46, 28, 18);
+      g.fillStyle = '#3e2a14';
+      g.fillRect(18, 46, 28, 2);
+      g.fillRect(18, 54, 28, 2);
+      g.fillStyle = '#d8b040';
+      for (let x = 21; x < 44; x += 5) g.fillRect(x, 41, 3, 6); // balas asomando
+      g.fillStyle = '#ff5a18';
+      g.fillRect(30, 57, 4, 4);
+    }),
+  ];
 }
 
 // ---------- Punto de entrada ----------
 
 export function buildAssets() {
+  const viewModels = buildViewModels();
   return {
     // El índice coincide con el número de la pared en el mapa
     walls: {
@@ -546,7 +710,14 @@ export function buildAssets() {
       zombie: enemyFrames('zombie'),
       zombieRapido: enemyFrames('zombieRapido'),
       demonio: enemyFrames('demonio'),
+      cohete: rocketFrames(),
+      explosion: explosionFrames(),
+      arma_escopeta: weaponPickup(viewModels.escopeta),
+      arma_ametralladora: weaponPickup(viewModels.ametralladora),
+      arma_lanzacohetes: weaponPickup(viewModels.lanzacohetes),
+      arma_especial: weaponPickup(viewModels.especial),
+      caja_municion: ammoBox(),
     },
-    viewModels: buildViewModels(),
+    viewModels,
   };
 }

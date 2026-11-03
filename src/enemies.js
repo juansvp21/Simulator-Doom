@@ -244,6 +244,48 @@ export function hitscanEnemy(level, x, y, dx, dy, maxDist) {
   return best ? { enemy: best, dist: bestT } : null;
 }
 
+// Igual que hitscanEnemy pero devuelve TODOS los enemigos en la línea
+// (para el rayo del Cetro del Abismo, que los atraviesa).
+export function hitscanAllEnemies(level, x, y, dx, dy, maxDist) {
+  const hits = [];
+  for (const e of level.enemies) {
+    if (e.state === 'dead') continue;
+    const rx = e.x - x;
+    const ry = e.y - y;
+    const t = rx * dx + ry * dy;
+    if (t <= 0 || t >= maxDist) continue;
+    if (Math.abs(rx * dy - ry * dx) < e.radius) hits.push({ enemy: e, dist: t });
+  }
+  return hits;
+}
+
+// -------------------------------------------------------------
+// EXPLOSIÓN (cohetes)
+// Daño en área con caída lineal: máximo en el centro y 0 en el borde.
+//   daño = splash * (1 - distancia / radio)
+// Las paredes protegen: si hay una pared entre la explosión y el objetivo
+// (lo comprobamos con castRay), no le llega.
+// -------------------------------------------------------------
+export function explode(level, player, x, y, splash, cfg) {
+  spawnEffect(level, 'explosion', x, y, cfg.fx.explosionLife);
+  level.lightT = cfg.fx.explosionLife; // la explosión ilumina la escena
+
+  const reaches = (tx, ty) => {
+    const d = Math.hypot(tx - x, ty - y);
+    if (d >= splash.radius) return 0;
+    if (d > 0.01 && castRay(level.map, x, y, (tx - x) / d, (ty - y) / d, d).hit) return 0;
+    return splash.damage * (1 - d / splash.radius);
+  };
+
+  for (const e of level.enemies) {
+    if (e.state === 'dead') continue;
+    const dmg = reaches(e.x, e.y);
+    if (dmg > 0) damageEnemy(e, dmg, player, cfg);
+  }
+  const selfDmg = reaches(player.x, player.y) * splash.self;
+  if (selfDmg > 0) damagePlayer(player, selfDmg, cfg);
+}
+
 // -------------------------------------------------------------
 // ACTUALIZACIÓN POR FRAME
 // -------------------------------------------------------------
@@ -369,19 +411,45 @@ function shootFireball(level, e, player, cfg) {
   });
 }
 
+// Bolas de fuego (enemigos) y cohetes (jugador).
+// Cada proyectil solo choca con el "otro bando": las bolas de fuego con el
+// jugador y los cohetes con los enemigos. Ambos chocan con paredes.
 export function updateProjectiles(level, player, dt, cfg) {
   for (const p of level.projectiles) {
-    p.x += p.dx * p.speed * dt;
-    p.y += p.dy * p.speed * dt;
-    if (isWall(level.map, p.x, p.y)) {
-      p.done = true;
-      spawnEffect(level, 'chispa', p.x - p.dx * 0.1, p.y - p.dy * 0.1, cfg.fx.sparkLife);
-    } else if (!player.dead && Math.hypot(p.x - player.x, p.y - player.y) < p.radius + player.radius) {
-      p.done = true;
-      damagePlayer(player, p.damage, cfg);
+    // Avanzamos en sub-pasos cortos para que un proyectil rápido no
+    // "salte" por encima de una pared delgada o de un enemigo en un frame.
+    const dist = p.speed * dt;
+    const steps = Math.max(1, Math.ceil(dist / 0.1));
+    for (let i = 0; i < steps && !p.done; i++) {
+      p.x += (p.dx * dist) / steps;
+      p.y += (p.dy * dist) / steps;
+      projectileHit(level, player, p, cfg);
     }
   }
   level.projectiles = level.projectiles.filter((p) => !p.done);
+}
+
+function projectileHit(level, player, p, cfg) {
+  const backX = p.x - p.dx * 0.1; // punto un poco antes del impacto
+  const backY = p.y - p.dy * 0.1;
+  let hitEnemy = null;
+  if (p.owner === 'player') {
+    hitEnemy = level.enemies.find((e) => e.state !== 'dead' && Math.hypot(p.x - e.x, p.y - e.y) < p.radius + e.radius);
+  }
+  const hitWall = isWall(level.map, p.x, p.y);
+  const hitPlayer = p.owner !== 'player' && !player.dead &&
+    Math.hypot(p.x - player.x, p.y - player.y) < p.radius + player.radius;
+  if (!hitWall && !hitEnemy && !hitPlayer) return;
+
+  p.done = true;
+  if (p.owner === 'player') {
+    if (hitEnemy) { damageEnemy(hitEnemy, p.damage, player, cfg); player.stats.hits++; }
+    explode(level, player, backX, backY, p.splash, cfg);
+  } else if (hitPlayer) {
+    damagePlayer(player, p.damage, cfg);
+  } else {
+    spawnEffect(level, 'chispa', backX, backY, cfg.fx.sparkLife);
+  }
 }
 
 // Efecto temporal (chispa, sangre). updateEffects en weapons.js lo anima y lo borra.

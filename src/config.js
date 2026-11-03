@@ -72,23 +72,48 @@ export const CONFIG = {
     deathFrameTime: 0.15, // duración de cada fotograma de la muerte
   },
 
-  // Armas. damage = daño por impacto, fireRate = disparos por segundo,
-  // magSize = balas por cargador, reloadTime = segundos,
-  // spread = desviación máxima en radianes (0 = puntería perfecta),
-  // startReserve = balas de reserva al empezar, auto = disparo manteniendo el clic.
+  // Armas. slot = tecla para elegirla (1-5)
+  //   kind: 'hitscan' (bala instantánea), 'projectile' (cohete que viaja),
+  //         'beam' (rayo que atraviesa a todos los enemigos en línea)
+  //   damage = daño por impacto (por perdigón en la escopeta)
+  //   pellets = proyectiles por disparo, fireRate = disparos por segundo,
+  //   magSize = balas por cargador, reloadTime = segundos,
+  //   spread = desviación máxima en radianes (0 = puntería perfecta),
+  //   startReserve = reserva al conseguirla, auto = dispara manteniendo el clic.
   weapons: {
     pistola: {
-      name: 'PISTOLA RÚNICA',
-      damage: 15,
-      fireRate: 4,
-      magSize: 12,
-      reloadTime: 1.1,
-      spread: 0.012,
-      range: 40,
-      startReserve: 48,
-      auto: false,
+      name: 'PISTOLA RÚNICA', slot: 1, kind: 'hitscan',
+      damage: 15, pellets: 1, fireRate: 4, magSize: 12, reloadTime: 1.1,
+      spread: 0.012, range: 40, startReserve: 48, auto: false,
+    },
+    escopeta: {
+      name: 'ESCOPETA DE AZUFRE', slot: 2, kind: 'hitscan',
+      damage: 9, pellets: 7, fireRate: 1.2, magSize: 6, reloadTime: 1.6,
+      spread: 0.09, range: 20, startReserve: 18, auto: false,
+    },
+    ametralladora: {
+      name: 'AMETRALLADORA INFERNAL', slot: 3, kind: 'hitscan',
+      damage: 9, pellets: 1, fireRate: 10, magSize: 40, reloadTime: 2.0,
+      spread: 0.045, range: 40, startReserve: 80, auto: true,
+    },
+    lanzacohetes: {
+      name: 'LANZACOHETES DE BRASA', slot: 4, kind: 'projectile',
+      damage: 60, pellets: 1, fireRate: 1.1, magSize: 4, reloadTime: 2.2,
+      spread: 0, range: 40, startReserve: 8, auto: false,
+      projectileSpeed: 9,   // casillas/s
+      splashRadius: 1.8,    // radio de la explosión (casillas)
+      splashDamage: 70,     // daño en el centro; baja a 0 en el borde
+      selfDamage: 0.5,      // fracción del daño de explosión que te haces tú
+    },
+    especial: {
+      name: 'CETRO DEL ABISMO', slot: 5, kind: 'beam',
+      damage: 45, pellets: 1, fireRate: 1.5, magSize: 5, reloadTime: 2.5,
+      spread: 0, range: 40, startReserve: 10, auto: false,
     },
   },
+
+  // Cajas de munición: dan esta fracción de startReserve a cada arma que tengas
+  ammoBoxFraction: 0.5,
 
   // Efectos visuales del arma
   fx: {
@@ -100,6 +125,12 @@ export const CONFIG = {
     bobSpeed: 9,         // velocidad del balanceo
     sparkLife: 0.25,     // duración de la chispa de impacto (s)
     weaponScale: 1.6,    // tamaño del arma en pantalla
+    switchTime: 0.35,    // segundos para cambiar de arma (bajar + subir)
+    beamTime: 0.15,      // duración visible del rayo del cetro
+    explosionLife: 0.45, // duración de la animación de explosión
+    explosionLight: 0.8, // cuánto ilumina una explosión
+    pickupRadius: 0.6,   // distancia para recoger objetos
+    messageTime: 2,      // segundos que se muestra un aviso ("¡ESCOPETA!")
   },
 
   hud: {
@@ -123,5 +154,12 @@ export const CONFIG = {
     cristal: { solid: false, radius: 0 },
     chispa: { solid: false, radius: 0 }, // impacto de bala (temporal)
     sangre: { solid: false, radius: 0 }, // impacto en enemigo (temporal)
+    explosion: { solid: false, radius: 0 },
+    // Objetos que se recogen al pasar por encima
+    arma_escopeta: { solid: false, radius: 0, pickup: { weapon: 'escopeta' } },
+    arma_ametralladora: { solid: false, radius: 0, pickup: { weapon: 'ametralladora' } },
+    arma_lanzacohetes: { solid: false, radius: 0, pickup: { weapon: 'lanzacohetes' } },
+    arma_especial: { solid: false, radius: 0, pickup: { weapon: 'especial' } },
+    caja_municion: { solid: false, radius: 0, pickup: { ammo: true } },
   },
 };

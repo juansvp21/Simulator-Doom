@@ -13,6 +13,7 @@ Todo el arte del juego se genera por código en `src/textures.js`. No se usan im
 | Brasero (4 fotogramas), estaca con calavera, cristal de alma | Sprites 64×64 | Dibujados con la API de canvas 2D y convertidos a píxeles |
 | Chispa, sangre, bola de fuego | Sprites 64×64 animados | Círculos y partículas con la API de canvas 2D |
 | Condenado, Poseído, Demonio ígneo | Sprites 64×64, 7 fotogramas | Una función de humanoide parametrizada (colores, grosor, cuernos, pose) |
-| Pistola rúnica (normal y con fogonazo) | Imagen 160×140 | Polígonos con la API de canvas 2D |
+| Pistola, escopeta, ametralladora, lanzacohetes y cetro (normal y disparando) | Imágenes 160×140 | Polígonos con la API de canvas 2D |
+| Cohete, explosión (4 fotogramas), armas en el suelo, caja de munición | Sprites 64×64 | Canvas 2D; las armas del suelo reutilizan su imagen en miniatura |
 
 Si en el futuro se añaden assets externos, deben tener licencia **CC0** y su fuente se anotará en esta tabla.

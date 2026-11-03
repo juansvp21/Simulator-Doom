@@ -13,14 +13,15 @@ armas mejorables y una tienda entre niveles. Personajes, nombres y arte 100 % or
   Cada jefe tiene una mecánica ligada a su pecado (p. ej. Gula traga proyectiles, Pereza ralentiza
   al jugador, Avaricia roba monedas). Diseños no explícitos.
 - **Ángeles**: enemigos de élite en los últimos mundos y un arcángel como jefe final tras vencer a
-  los 7 pecados. *(Propuesta pendiente de confirmar antes de la Fase 4.)*
+  los 7 pecados. Se implementan en la Fase 7.
 
 ## Tecnología
 - HTML + CSS + JavaScript puro (módulos ES), sin frameworks ni motores.
 - Render con raycasting 2.5D sobre <canvas> (paredes por columnas, enemigos como sprites).
 - Sprites y texturas generados por código o assets libres con licencia CC0 (indicar la fuente en ASSETS.md).
 - Sonido con Web Audio API.
-- Se juega abriendo index.html o con un servidor local simple (npx serve).
+- Se juega con un servidor local simple (`npx serve`). Abrir index.html con doble clic NO funciona:
+  el navegador bloquea los módulos ES cargados desde file://.
 
 ## Estructura
 ```

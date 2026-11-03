@@ -8,9 +8,9 @@ import { initInput, endFrame, wasPressed } from './input.js';
 import { createPlayer, updatePlayer } from './player.js';
 import { buildAssets } from './textures.js';
 import { createRenderer, renderScene } from './raycaster.js';
-import { createWeaponState, updateWeapon, updateEffects } from './weapons.js';
+import { createArsenal, currentWeapon, updateArsenal, updatePickups, updateEffects } from './weapons.js';
 import { updateEnemies, updateProjectiles, alertEnemies } from './enemies.js';
-import { drawWeapon, drawCrosshair, drawHUD, drawDamage, drawEnemyCounter } from './hud.js';
+import { drawWeapon, drawCrosshair, drawHUD, drawDamage, drawEnemyCounter, drawMessage } from './hud.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('overlay');
@@ -25,13 +25,16 @@ const renderer = createRenderer(ctx, CONFIG, assets);
 initInput(canvas, overlay);
 
 // Estado de la partida. Se agrupa para poder reiniciarla de golpe.
-let level, player, weapon;
+let level, player, arsenal;
+let message = '';   // aviso en pantalla (p. ej. "¡ESCOPETA!")
+let messageT = 0;
 function newGame() {
   level = createLevel(TEST_LEVEL, CONFIG);
   player = createPlayer(CONFIG);
-  weapon = createWeaponState(CONFIG, 'pistola');
+  arsenal = createArsenal(CONFIG);
+  messageT = 0;
   // Expuesto solo para depurar desde la consola del navegador.
-  window.__game = { player, level, weapon, CONFIG };
+  window.__game = { player, level, arsenal, CONFIG };
 }
 newGame();
 
@@ -51,8 +54,10 @@ function frame(now) {
   // --- Lógica ---
   if (!player.dead) {
     updatePlayer(player, level, dt, CONFIG);
-    const shot = updateWeapon(weapon, dt, player, level, CONFIG);
+    const shot = updateArsenal(arsenal, dt, player, level, CONFIG);
     if (shot) alertEnemies(level, player, CONFIG); // el ruido del disparo
+    const picked = updatePickups(level, player, arsenal, CONFIG);
+    if (picked) { message = picked; messageT = CONFIG.fx.messageTime; }
   } else if (wasPressed('KeyR')) {
     newGame();
   }
@@ -60,17 +65,23 @@ function frame(now) {
   updateProjectiles(level, player, dt, CONFIG);
   updateEffects(level, dt);
   player.hurtT = Math.max(0, player.hurtT - dt);
+  level.lightT = Math.max(0, (level.lightT ?? 0) - dt);
+  messageT = Math.max(0, messageT - dt);
+  const weapon = currentWeapon(arsenal);
 
   // --- Dibujo ---
-  renderer.flash = weapon.flashT > 0 ? CONFIG.fx.flashLight : 0;
+  // Luz extra: fogonazo del arma y explosiones (la más fuerte de las dos)
+  const explosionLight = (level.lightT / CONFIG.fx.explosionLife) * CONFIG.fx.explosionLight;
+  renderer.flash = Math.max(weapon.flashT > 0 ? CONFIG.fx.flashLight : 0, explosionLight);
   renderScene(renderer, player, level, time);
   if (!player.dead) {
-    drawWeapon(ctx, weapon, player, assets, CONFIG);
+    drawWeapon(ctx, arsenal, player, assets, CONFIG);
     drawCrosshair(ctx, weapon, CONFIG);
   }
   drawDamage(ctx, player, CONFIG);
-  drawHUD(ctx, player, weapon, CONFIG, time);
+  drawHUD(ctx, player, arsenal, CONFIG, time);
   drawEnemyCounter(ctx, level, CONFIG);
+  drawMessage(ctx, message, Math.min(1, messageT), CONFIG);
 
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';
