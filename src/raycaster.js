@@ -29,6 +29,7 @@ export function createRenderer(ctx, cfg, assets) {
     buf: new Uint32Array(image.data.buffer),
     // z-buffer: distancia de la pared en cada columna (para tapar sprites)
     zBuffer: new Float32Array(W),
+    flash: 0, // luz del fogonazo en este frame (la pone main.js)
   };
 }
 
@@ -38,11 +39,14 @@ export function createRenderer(ctx, cfg, assets) {
 // El color final mezcla el color de la textura con el color de la niebla:
 //   final = textura * brillo + niebla * (1 - brillo)
 // ---------------------------------------------------------
-function makeShader(cfg) {
+// r.flash (0..1) es la luz del fogonazo del arma: suma brillo extra que
+// también se apaga con la distancia, pero más despacio que la niebla.
+function makeShader(cfg, r) {
   const [fr, fg, fb] = cfg.fog.color;
   const density = cfg.fog.density;
   return {
-    brightness: (dist) => Math.exp(-dist * density),
+    brightness: (dist) =>
+      Math.min(1, Math.exp(-dist * density) + r.flash * Math.exp(-dist * 0.3)),
     // Escribe en buf[i] el texel ti de la textura data, con brillo k.
     put(buf, i, data, ti, k) {
       const inv = 1 - k;
@@ -57,7 +61,7 @@ function makeShader(cfg) {
 
 export function renderScene(r, player, level, time) {
   const { W, H, buf, zBuffer, assets, cfg } = r;
-  const shader = r.shader ?? (r.shader = makeShader(cfg));
+  const shader = r.shader ?? (r.shader = makeShader(cfg, r));
   const half = H / 2;
   const { x: px, y: py, dirX, dirY, planeX, planeY } = player;
   const MASK = TEX - 1;
@@ -249,8 +253,12 @@ function drawSprites(r, player, level, time, shader) {
     const startY = Math.floor(half - size / 2);
 
     const frames = assets.sprites[s.type];
-    // Fase distinta por sprite para que los braseros no se animen sincronizados
-    const frame = frames[Math.floor(time * cfg.render.spriteFps + s.x * 7 + s.y * 13) % frames.length];
+    // Si el sprite controla su propio fotograma (efectos como las chispas), se usa ese.
+    // Si no, animación por tiempo, con una fase distinta por sprite para que
+    // los braseros no se muevan sincronizados.
+    const frame = s.frame !== undefined
+      ? frames[s.frame]
+      : frames[Math.floor(time * cfg.render.spriteFps + s.x * 7 + s.y * 13) % frames.length];
     let k = shader.brightness(tY);
     if (frame.emissive) k = Math.max(k, cfg.fog.emissiveMin);
 

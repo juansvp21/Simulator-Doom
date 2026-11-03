@@ -16,6 +16,12 @@ export function createPlayer(cfg) {
     // Vectores derivados del ángulo (se recalculan en updateVectors)
     dirX: 0, dirY: 0,       // hacia dónde mira (longitud 1)
     planeX: 0, planeY: 0,   // plano de cámara (perpendicular a dir)
+    health: cfg.player.startHealth,
+    armor: cfg.player.startArmor,
+    money: cfg.player.startMoney,
+    stats: { shots: 0, hits: 0 }, // para el bono de precisión (Fase 6)
+    walkPhase: 0,           // avanza al caminar -> balanceo del arma
+    moving: false,
   };
   updateVectors(p, cfg);
   return p;
@@ -70,7 +76,9 @@ export function updatePlayer(p, level, dt, cfg) {
   if (isDown('KeyS') || isDown('ArrowDown')) forward -= 1;
   if (isDown('KeyD')) strafe += 1;
   if (isDown('KeyA')) strafe -= 1;
-  if (forward === 0 && strafe === 0) return;
+  p.moving = forward !== 0 || strafe !== 0;
+  if (!p.moving) return;
+  p.walkPhase += dt * cfg.fx.bobSpeed;
 
   // Combinamos: dir * forward + derecha * strafe. Derecha = (-dirY, dirX).
   let mx = p.dirX * forward - p.dirY * strafe;

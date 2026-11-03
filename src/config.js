@@ -28,6 +28,46 @@ export const CONFIG = {
     turnSpeed: 2.5,    // radianes por segundo (flechas)
     mouseSensitivity: 0.0025, // radianes por píxel de ratón
     radius: 0.2,       // "grosor" del jugador para las colisiones (debe ser < 0.5)
+    maxHealth: 100,
+    startHealth: 100,
+    maxArmor: 100,
+    startArmor: 0,
+    startMoney: 0,
+  },
+
+  // Armas. damage = daño por impacto, fireRate = disparos por segundo,
+  // magSize = balas por cargador, reloadTime = segundos,
+  // spread = desviación máxima en radianes (0 = puntería perfecta),
+  // startReserve = balas de reserva al empezar, auto = disparo manteniendo el clic.
+  weapons: {
+    pistola: {
+      name: 'PISTOLA RÚNICA',
+      damage: 15,
+      fireRate: 4,
+      magSize: 12,
+      reloadTime: 1.1,
+      spread: 0.012,
+      range: 40,
+      startReserve: 48,
+      auto: false,
+    },
+  },
+
+  // Efectos visuales del arma
+  fx: {
+    flashTime: 0.06,     // duración del fogonazo (s)
+    flashLight: 0.55,    // cuánto ilumina el fogonazo la escena (0..1)
+    recoilTime: 0.18,    // duración del retroceso (s)
+    recoilKick: 22,      // píxeles que sube el arma al disparar
+    bobAmount: 6,        // balanceo del arma al caminar (px)
+    bobSpeed: 9,         // velocidad del balanceo
+    sparkLife: 0.25,     // duración de la chispa de impacto (s)
+    weaponScale: 1.6,    // tamaño del arma en pantalla
+  },
+
+  hud: {
+    height: 44,          // alto de la barra inferior (px de resolución interna)
+    lowHealth: 25,       // por debajo de esto la vida parpadea en rojo
   },
 
   // Delta time máximo: si el juego se congela (cambio de pestaña),
@@ -44,5 +84,6 @@ export const CONFIG = {
     brasero: { solid: true, radius: 0.3 },
     estaca: { solid: true, radius: 0.15 },
     cristal: { solid: false, radius: 0 },
+    chispa: { solid: false, radius: 0 }, // impacto de bala (temporal)
   },
 };

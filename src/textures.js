@@ -280,6 +280,101 @@ function soulCrystal() {
   ];
 }
 
+// Chispa de impacto: 3 fotogramas (estallido -> brasas -> casi nada).
+// Se dibuja en el CENTRO del sprite porque el impacto ocurre a la altura
+// de los ojos (el rayo del disparo es horizontal).
+function sparkFrames() {
+  return [
+    [7, '#ffe070', '#ff7020'],
+    [4, '#ffa040', '#c03010'],
+    [2, '#c04010', '#601008'],
+  ].map(([radius, inner, outer]) =>
+    drawSprite((g) => {
+      g.fillStyle = outer;
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + radius;
+        g.fillRect(32 + Math.cos(a) * radius * 1.4 - 1, 32 + Math.sin(a) * radius * 1.4 - 1, 2, 2);
+      }
+      g.beginPath(); g.arc(32, 32, radius, 0, Math.PI * 2); g.fill();
+      g.fillStyle = inner;
+      g.beginPath(); g.arc(32, 32, radius * 0.55, 0, Math.PI * 2); g.fill();
+    }, true)
+  );
+}
+
+// ---------- Armas en primera persona ("view model") ----------
+// Se dibujan encima de la escena con drawImage. Cada arma tiene dos
+// imágenes: normal y con fogonazo.
+
+function makeCanvas(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d');
+  draw(g);
+  return c;
+}
+
+function poly(g, pts, color) {
+  g.fillStyle = color;
+  g.beginPath();
+  pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py)));
+  g.closePath();
+  g.fill();
+}
+
+// Pistola rúnica vista desde atrás, sujeta por una mano con guante de cuero.
+function drawPistol(g, withFlash) {
+  if (withFlash) {
+    // Fogonazo: estrella de puntas irregulares encima del cañón
+    const rand = mulberry32(7);
+    const pts = [];
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      const r = i % 2 ? 10 + rand() * 6 : 22 + rand() * 12;
+      pts.push([80 + Math.cos(a) * r, 22 + Math.sin(a) * r * 0.8]);
+    }
+    poly(g, pts, '#ff7a1a');
+    g.fillStyle = '#ffe680';
+    g.beginPath(); g.ellipse(80, 22, 11, 9, 0, 0, Math.PI * 2); g.fill();
+  }
+  // Antebrazo y mano (guante de cuero)
+  poly(g, [[38, 140], [122, 140], [108, 92], [52, 92]], '#3a2418');
+  poly(g, [[46, 140], [62, 140], [60, 96], [54, 96]], '#5a3826');
+  // Empuñadura
+  g.fillStyle = '#231c1e';
+  g.fillRect(64, 58, 32, 44);
+  // Cuerpo / corredera (trapecio: más ancho abajo por la perspectiva)
+  poly(g, [[60, 30], [100, 30], [106, 64], [54, 64]], '#4a4448');
+  poly(g, [[60, 30], [100, 30], [101, 35], [59, 35]], '#6e676c'); // brillo superior
+  poly(g, [[54, 60], [106, 60], [106, 64], [54, 64]], '#2c2629'); // sombra inferior
+  // Alza (mira trasera)
+  g.fillStyle = '#1c1618';
+  g.fillRect(66, 22, 9, 9);
+  g.fillRect(85, 22, 9, 9);
+  // Runas que brillan a los lados
+  g.fillStyle = withFlash ? '#ffd060' : '#ff5a18';
+  g.fillRect(61, 40, 3, 14);
+  g.fillRect(96, 40, 3, 14);
+  g.fillRect(78, 42, 4, 4);
+  // Dedos rodeando la empuñadura
+  for (const fy of [72, 82, 92]) {
+    g.fillStyle = '#3a2418';
+    g.fillRect(58, fy, 44, 8);
+    g.fillStyle = '#5a3826';
+    g.fillRect(58, fy, 44, 2);
+  }
+}
+
+function buildViewModels() {
+  return {
+    pistola: {
+      idle: makeCanvas(160, 140, (g) => drawPistol(g, false)),
+      flash: makeCanvas(160, 140, (g) => drawPistol(g, true)),
+    },
+  };
+}
+
 // ---------- Punto de entrada ----------
 
 export function buildAssets() {
@@ -299,6 +394,8 @@ export function buildAssets() {
       brasero: brazierFrames(),
       estaca: skullPike(),
       cristal: soulCrystal(),
+      chispa: sparkFrames(),
     },
+    viewModels: buildViewModels(),
   };
 }

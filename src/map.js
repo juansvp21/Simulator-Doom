@@ -72,3 +72,32 @@ export function getTile(map, x, y) {
 export function isWall(map, x, y) {
   return getTile(map, x, y) !== 0;
 }
+
+// -------------------------------------------------------------
+// castRay: lanza UN rayo desde (x, y) en la dirección (dx, dy) y devuelve
+// dónde choca con una pared. Es el mismo DDA del raycaster, pero aquí la
+// dirección SÍ está normalizada (longitud 1), así que las distancias que
+// salen son distancias reales en casillas.
+// Se usa para el disparo (hitscan) y en la Fase 4 para la línea de visión.
+// -------------------------------------------------------------
+export function castRay(map, x, y, dx, dy, maxDist = 64) {
+  let mapX = Math.floor(x);
+  let mapY = Math.floor(y);
+  const deltaX = dx === 0 ? Infinity : Math.abs(1 / dx);
+  const deltaY = dy === 0 ? Infinity : Math.abs(1 / dy);
+  const stepX = dx < 0 ? -1 : 1;
+  const stepY = dy < 0 ? -1 : 1;
+  let sideX = (dx < 0 ? x - mapX : mapX + 1 - x) * deltaX;
+  let sideY = (dy < 0 ? y - mapY : mapY + 1 - y) * deltaY;
+
+  while (true) {
+    let dist;
+    if (sideX < sideY) { dist = sideX; sideX += deltaX; mapX += stepX; }
+    else               { dist = sideY; sideY += deltaY; mapY += stepY; }
+    if (dist > maxDist) return { hit: false, dist: maxDist };
+    const tile = getTile(map, mapX, mapY);
+    if (tile !== 0) {
+      return { hit: true, dist, x: x + dx * dist, y: y + dy * dist, tile };
+    }
+  }
+}

@@ -13,17 +13,19 @@ npx serve
 
 y abre la dirección que muestra (normalmente http://localhost:3000).
 
-## Controles (Fase 1)
+## Controles
 
 - **WASD**: moverse (A/D = paso lateral)
 - **Ratón** o **← →**: girar
-- **Clic**: capturar el ratón · **Esc**: soltarlo
+- **Clic**: capturar el ratón (primer clic) y disparar
+- **R**: recargar
+- **Esc**: soltar el ratón
 
 ## Estado
 
 - [x] Fase 1: raycaster básico, paredes de colores, movimiento y colisiones
 - [x] Fase 2: texturas infernales, suelo/techo, niebla roja y sprites
-- [ ] Fase 3: pistola y HUD
+- [x] Fase 3: pistola rúnica, disparo hitscan, recarga y HUD
 - [ ] Fase 4: enemigos con IA
 - [ ] Fase 5: resto de armas
 - [ ] Fase 6: dinero, tienda y mejoras
