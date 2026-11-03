@@ -5,6 +5,16 @@ Shooter en primera persona estilo "boomer shooter" de los 90: pasillos, oleadas 
 armas mejorables y una tienda entre niveles. Personajes, nombres y arte 100 % originales
 (nada de nombres, logos ni sprites de juegos existentes).
 
+## Ambientación: inframundo
+- Estética infernal: roca volcánica, ladrillo rojo, muros de calaveras, hierro con runas, lava animada,
+  braseros y niebla roja. Paleta oscura con rojos, naranjas y luz de fuego.
+- Estructura: 7 mundos (círculos del inframundo). Cada mundo pertenece a un **pecado capital** y termina
+  con su jefe: Soberbia, Avaricia, Lujuria, Ira, Gula, Envidia y Pereza.
+  Cada jefe tiene una mecánica ligada a su pecado (p. ej. Gula traga proyectiles, Pereza ralentiza
+  al jugador, Avaricia roba monedas). Diseños no explícitos.
+- **Ángeles**: enemigos de élite en los últimos mundos y un arcángel como jefe final tras vencer a
+  los 7 pecados. *(Propuesta pendiente de confirmar antes de la Fase 4.)*
+
 ## Tecnología
 - HTML + CSS + JavaScript puro (módulos ES), sin frameworks ni motores.
 - Render con raycasting 2.5D sobre <canvas> (paredes por columnas, enemigos como sprites).
@@ -21,6 +31,8 @@ src/
   input.js       # teclado y ratón (Pointer Lock)
   map.js         # mapas como matrices de números
   raycaster.js   # render de paredes, suelo/techo y sprites
+  textures.js    # texturas y sprites generados por código
+  config.js      # valores de balance y ajustes
   player.js      # movimiento, colisiones, vida, armadura
   enemies.js     # tipos de enemigo y su IA
   weapons.js     # armas, munición y mejoras
@@ -33,7 +45,8 @@ src/
 ## Mecánicas
 - Controles: WASD para moverse, ratón para apuntar, clic para disparar, 1-5 para cambiar de arma,
   R para recargar, E para interactuar.
-- Enemigos: zombie lento, zombie rápido, demonio que lanza bolas de fuego y un jefe al final de cada mundo.
+- Enemigos: zombie lento, zombie rápido, demonio que lanza bolas de fuego, ángeles (élite) y un jefe
+  al final de cada mundo (los 7 pecados capitales; jefe final: un arcángel).
   IA con estados (patrullar → perseguir → atacar → morir) y línea de visión con raycasting.
 - Armas: pistola, escopeta, ametralladora, lanzacohetes y una arma especial. Cada una tiene daño,
   cadencia, cargador y dispersión.

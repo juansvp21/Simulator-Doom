@@ -3,10 +3,11 @@
 // =============================================================
 
 import { CONFIG } from './config.js';
-import { TEST_MAP, createMap } from './map.js';
+import { TEST_LEVEL, createLevel } from './map.js';
 import { initInput } from './input.js';
 import { createPlayer, updatePlayer } from './player.js';
-import { renderScene } from './raycaster.js';
+import { buildAssets } from './textures.js';
+import { createRenderer, renderScene } from './raycaster.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('overlay');
@@ -16,8 +17,10 @@ const ctx = canvas.getContext('2d');
 canvas.width = CONFIG.render.width;
 canvas.height = CONFIG.render.height;
 
-const map = createMap(TEST_MAP);
+const level = createLevel(TEST_LEVEL, CONFIG);
 const player = createPlayer(CONFIG);
+const assets = buildAssets(); // texturas y sprites generados por código
+const renderer = createRenderer(ctx, CONFIG, assets);
 initInput(canvas, overlay);
 
 // Contador de FPS suavizado (media móvil) para que no parpadee.
@@ -25,7 +28,7 @@ let fps = 60;
 let lastTime = performance.now();
 
 // Expuesto solo para depurar desde la consola del navegador.
-window.__game = { player, map, CONFIG };
+window.__game = { player, level, CONFIG };
 
 function frame(now) {
   // DELTA TIME: segundos desde el frame anterior. Multiplicar velocidades
@@ -35,8 +38,8 @@ function frame(now) {
   dt = Math.min(dt, CONFIG.maxDeltaTime);
   if (dt > 0) fps = fps * 0.95 + (1 / dt) * 0.05;
 
-  updatePlayer(player, map, dt, CONFIG);
-  renderScene(ctx, player, map, CONFIG);
+  updatePlayer(player, level, dt, CONFIG);
+  renderScene(renderer, player, level, now / 1000);
 
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';

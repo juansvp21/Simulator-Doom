@@ -36,15 +36,23 @@ function updateVectors(p, cfg) {
   p.planeY = p.dirX * planeLen;
 }
 
-// ¿Cabe el jugador (un cuadrado de lado 2*radio) en (x, y) sin tocar paredes?
-// Comprobamos las 4 esquinas. Funciona porque radio < 0.5 y cada paso
-// es pequeño (el delta time está limitado en config.js).
-function canStand(map, x, y, r) {
-  return !isWall(map, x - r, y - r) && !isWall(map, x + r, y - r) &&
-         !isWall(map, x - r, y + r) && !isWall(map, x + r, y + r);
+// ¿Cabe el jugador en (x, y)?
+// - Paredes: tratamos al jugador como un cuadrado de lado 2*radio y miramos
+//   sus 4 esquinas. Funciona porque radio < 0.5 y cada paso es pequeño
+//   (el delta time está limitado en config.js).
+// - Sprites sólidos: círculo contra círculo. Chocan si la distancia entre
+//   centros es menor que la suma de los radios.
+function canStand(level, x, y, r) {
+  const map = level.map;
+  if (isWall(map, x - r, y - r) || isWall(map, x + r, y - r) ||
+      isWall(map, x - r, y + r) || isWall(map, x + r, y + r)) return false;
+  for (const s of level.sprites) {
+    if (s.solid && Math.hypot(x - s.x, y - s.y) < r + s.radius) return false;
+  }
+  return true;
 }
 
-export function updatePlayer(p, map, dt, cfg) {
+export function updatePlayer(p, level, dt, cfg) {
   const c = cfg.player;
 
   // --- Rotación: ratón + flechas izquierda/derecha ---
@@ -77,6 +85,6 @@ export function updatePlayer(p, map, dt, cfg) {
   // --- Colisión eje por eje ---
   // Probamos X y Y por separado. Si chocas de frente contra una pared en
   // diagonal, el eje bloqueado se anula pero el otro sigue: te "deslizas".
-  if (canStand(map, p.x + dx, p.y, c.radius)) p.x += dx;
-  if (canStand(map, p.x, p.y + dy, c.radius)) p.y += dy;
+  if (canStand(level, p.x + dx, p.y, c.radius)) p.x += dx;
+  if (canStand(level, p.x, p.y + dy, c.radius)) p.y += dy;
 }

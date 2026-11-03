@@ -22,7 +22,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 ## Estado
 
 - [x] Fase 1: raycaster básico, paredes de colores, movimiento y colisiones
-- [ ] Fase 2: texturas, suelo/techo y sprites
+- [x] Fase 2: texturas infernales, suelo/techo, niebla roja y sprites
 - [ ] Fase 3: pistola y HUD
 - [ ] Fase 4: enemigos con IA
 - [ ] Fase 5: resto de armas

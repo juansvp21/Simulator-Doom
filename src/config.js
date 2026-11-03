@@ -9,6 +9,15 @@ export const CONFIG = {
     height: 400,
     fov: 66,      // campo de visión horizontal en grados
     maxRaySteps: 64, // seguridad: máximo de casillas que recorre un rayo
+    lavaSpeed: 12,   // texels por segundo que "fluye" la lava de las paredes
+    spriteFps: 8,    // velocidad de animación de sprites (braseros)
+  },
+
+  // Niebla roja del inframundo: lo lejano se funde con este color.
+  fog: {
+    color: [28, 4, 4],
+    density: 0.16,     // más alto = niebla más espesa
+    emissiveMin: 0.85, // brillo mínimo de lo que emite luz (lava, fuego, cristales)
   },
 
   player: {
@@ -26,15 +35,14 @@ export const CONFIG = {
   maxDeltaTime: 0.1,
 
   colors: {
-    ceiling: [40, 36, 48],
-    floor: [70, 58, 46],
-    // Color de cada tipo de pared según su número en el mapa
-    walls: {
-      1: [150, 150, 150], // piedra gris
-      2: [160, 50, 40],   // ladrillo rojo
-      3: [60, 110, 60],   // musgo verde
-      4: [70, 80, 160],   // metal azul
-    },
     sideShade: 0.65, // multiplicador para las caras norte/sur (más oscuras)
+  },
+
+  // Propiedades de cada tipo de sprite decorativo.
+  // solid = bloquea el paso; radius = tamaño de su colisión (en casillas).
+  sprites: {
+    brasero: { solid: true, radius: 0.3 },
+    estaca: { solid: true, radius: 0.15 },
+    cristal: { solid: false, radius: 0 },
   },
 };
