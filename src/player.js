@@ -20,7 +20,7 @@ export function createPlayer(cfg) {
     health: cfg.player.startHealth,
     armor: cfg.player.startArmor,
     money: cfg.player.startMoney,
-    stats: { shots: 0, hits: 0, kills: 0 }, // para el bono de precisión (Fase 6)
+    stats: { shots: 0, hits: 0, kills: 0, coins: 0, time: 0 }, // estadísticas del nivel actual
     hurtT: 0,               // > 0 mientras se ve el destello rojo de daño
     dead: false,
     walkPhase: 0,           // avanza al caminar -> balanceo del arma
@@ -102,4 +102,17 @@ export function updatePlayer(p, level, dt, cfg) {
   // diagonal, el eje bloqueado se anula pero el otro sigue: te "deslizas".
   if (canStand(level, p.x + dx, p.y, p.radius)) p.x += dx;
   if (canStand(level, p.x, p.y + dy, p.radius)) p.y += dy;
+}
+
+// Coloca al jugador al inicio de un nivel nuevo SIN tocar lo que conserva
+// entre niveles (oro, vida, armadura). Las estadísticas sí empiezan de cero.
+export function resetPlayerForLevel(p, cfg) {
+  p.x = cfg.player.startX;
+  p.y = cfg.player.startY;
+  p.angle = cfg.player.startAngle;
+  updateVectors(p, cfg);
+  p.stats = { shots: 0, hits: 0, kills: 0, coins: 0, time: 0 };
+  p.hurtT = 0;
+  p.dead = false;
+  p.moving = false;
 }

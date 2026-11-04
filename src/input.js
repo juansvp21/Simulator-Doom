@@ -14,6 +14,8 @@ const pressed = new Set(); // teclas que se pulsaron desde el último frame
 let mouseDX = 0;           // movimiento horizontal acumulado del ratón
 let wheel = 0;             // giros de la rueda del ratón (+1 abajo, -1 arriba)
 let locked = false;        // ¿el ratón está capturado (Pointer Lock)?
+let overlayEnabled = true; // en la tienda/resumen no mostramos "Haz clic para jugar"
+let overlayEl = null;
 
 function press(code) {
   if (!keys.has(code)) pressed.add(code); // ignora la auto-repetición del teclado
@@ -21,6 +23,7 @@ function press(code) {
 }
 
 export function initInput(canvas, overlay) {
+  overlayEl = overlay;
   window.addEventListener('keydown', (e) => {
     press(e.code);
     // Evita que las flechas y el espacio hagan scroll en la página
@@ -45,7 +48,7 @@ export function initInput(canvas, overlay) {
 
   document.addEventListener('pointerlockchange', () => {
     locked = document.pointerLockElement === canvas;
-    overlay.classList.toggle('hidden', locked);
+    overlay.classList.toggle('hidden', locked || !overlayEnabled);
     if (!locked) keys.clear();
   });
 
@@ -83,4 +86,15 @@ export function consumeWheel() {
   const w = wheel;
   wheel = 0;
   return w;
+}
+
+// La tienda y el resumen sueltan el ratón a propósito: ahí no queremos
+// el aviso de "Haz clic para jugar".
+export function setOverlayEnabled(enabled) {
+  overlayEnabled = enabled;
+  if (overlayEl) overlayEl.classList.toggle('hidden', locked || !enabled);
+}
+
+export function isPointerLocked() {
+  return locked;
 }

@@ -42,14 +42,12 @@ export const TEST_LEVEL = {
     { type: 'brasero', x: 1.5, y: 12.5 },
     { type: 'estaca', x: 6.5, y: 14.5 },
     { type: 'cristal', x: 14.5, y: 14.5 },
-    // Armas y munición para recoger (en la Fase 6 se comprarán en la tienda)
-    { type: 'arma_escopeta', x: 1.5, y: 4.5 },
-    { type: 'arma_ametralladora', x: 8.5, y: 7.5 },
-    { type: 'arma_lanzacohetes', x: 5.5, y: 13.5 },
-    { type: 'arma_especial', x: 13.5, y: 2.5 },
+    // Munición para recoger (las armas se compran en la tienda)
     { type: 'caja_municion', x: 1.5, y: 10.5 },
     { type: 'caja_municion', x: 10.5, y: 12.5 },
     { type: 'caja_municion', x: 9.5, y: 3.5 },
+    // Salida: se abre al eliminar a todos los enemigos y se usa con E
+    { type: 'portal', x: 13.5, y: 12.5 },
   ],
   // Enemigos: zombie = Condenado, zombieRapido = Poseído, demonio = Demonio ígneo
   enemies: [

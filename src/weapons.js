@@ -29,6 +29,26 @@ function createWeaponState(cfg, id) {
     beamT: 0,                  // > 0 mientras se ve el rayo del cetro
     messageT: 0,               // > 0 mientras se muestra "SIN BALAS"
     queuedT: 0,                // > 0 si hay un clic esperando a que el arma esté lista
+    // Nivel comprado de cada mejora (0 a 3)
+    upgrades: { damage: 0, fireRate: 0, magSize: 0, reloadTime: 0 },
+  };
+}
+
+// -------------------------------------------------------------
+// ESTADÍSTICAS CON MEJORAS
+// El valor base está en config.js y cada nivel lo cambia un porcentaje:
+//   valor = base * (1 + perLevel * nivel)
+// Con perLevel negativo (recarga) el valor baja: -15 % por nivel.
+// Así la lógica de disparo no sabe nada de la tienda: solo pide estas stats.
+// -------------------------------------------------------------
+export function weaponStats(w, cfg) {
+  const up = cfg.upgrades;
+  const mult = (key) => 1 + up[key].perLevel * w.upgrades[key];
+  return {
+    damage: w.def.damage * mult('damage'),
+    fireRate: w.def.fireRate * mult('fireRate'),
+    magSize: Math.round(w.def.magSize * mult('magSize')),
+    reloadTime: w.def.reloadTime * mult('reloadTime'),
   };
 }
 
@@ -57,6 +77,31 @@ export function giveWeapon(arsenal, id, cfg) {
   }
   arsenal.weapons[id] = createWeaponState(cfg, id);
   return true;
+}
+
+// Copia "plana" del arsenal (solo datos, sin funciones ni referencias a config).
+// Sirve para volver al estado del inicio del nivel si mueres, y en la
+// Fase 7 para guardar la partida en localStorage.
+export function serializeArsenal(arsenal) {
+  const weapons = {};
+  for (const [id, w] of Object.entries(arsenal.weapons)) {
+    weapons[id] = { mag: w.mag, reserve: w.reserve, upgrades: { ...w.upgrades } };
+  }
+  return { current: arsenal.current, weapons };
+}
+
+export function restoreArsenal(data, cfg) {
+  const arsenal = createArsenal(cfg);
+  arsenal.weapons = {};
+  for (const [id, saved] of Object.entries(data.weapons)) {
+    const w = createWeaponState(cfg, id);
+    w.mag = saved.mag;
+    w.reserve = saved.reserve;
+    w.upgrades = { ...saved.upgrades };
+    arsenal.weapons[id] = w;
+  }
+  arsenal.current = arsenal.weapons[data.current] ? data.current : 'pistola';
+  return arsenal;
 }
 
 // Las armas ordenadas por su tecla (1-5)
@@ -115,6 +160,7 @@ function tickTimers(w, dt) {
 
 function updateWeapon(w, dt, player, level, cfg) {
   const def = w.def;
+  const st = weaponStats(w, cfg);
   tickTimers(w, dt);
 
   // --- Recarga en curso ---
@@ -122,7 +168,7 @@ function updateWeapon(w, dt, player, level, cfg) {
     w.reloadT -= dt;
     if (w.reloadT <= 0) {
       // Pasamos de la reserva al cargador solo lo que falta (y lo que haya)
-      const n = Math.min(def.magSize - w.mag, w.reserve);
+      const n = Math.min(st.magSize - w.mag, w.reserve);
       w.mag += n;
       w.reserve -= n;
       w.reloadT = 0;
@@ -131,8 +177,8 @@ function updateWeapon(w, dt, player, level, cfg) {
   }
 
   // --- Empezar a recargar con R ---
-  if (wasPressed('KeyR') && w.mag < def.magSize && w.reserve > 0) {
-    w.reloadT = def.reloadTime;
+  if (wasPressed('KeyR') && w.mag < st.magSize && w.reserve > 0) {
+    w.reloadT = st.reloadTime;
     return null;
   }
 
@@ -150,36 +196,36 @@ function updateWeapon(w, dt, player, level, cfg) {
 
   if (w.mag === 0) {
     // Cargador vacío: recarga automática si quedan balas; si no, aviso
-    if (w.reserve > 0) w.reloadT = def.reloadTime;
+    if (w.reserve > 0) w.reloadT = st.reloadTime;
     else w.messageT = 1;
     return null;
   }
 
-  return fire(w, player, level, cfg);
+  return fire(w, st, player, level, cfg);
 }
 
 // -------------------------------------------------------------
 // DISPARAR
 // -------------------------------------------------------------
-function fire(w, player, level, cfg) {
+function fire(w, st, player, level, cfg) {
   const def = w.def;
   const fx = cfg.fx;
   w.mag--;
-  w.cooldown = 1 / def.fireRate; // cadencia: disparos por segundo -> segundos entre disparos
+  w.cooldown = 1 / st.fireRate; // cadencia: disparos por segundo -> segundos entre disparos
   w.recoilT = fx.recoilTime;
   w.flashT = fx.flashTime;
   player.stats.shots++;
 
-  if (def.kind === 'projectile') fireRocket(def, player, level);
-  else if (def.kind === 'beam') fireBeam(w, player, level, cfg);
-  else fireHitscan(def, player, level, cfg);
+  if (def.kind === 'projectile') fireRocket(def, st, player, level);
+  else if (def.kind === 'beam') fireBeam(w, st, player, level, cfg);
+  else fireHitscan(def, st, player, level, cfg);
 
   return { x: player.x, y: player.y };
 }
 
 // Bala(s) instantánea(s). Con pellets > 1 (escopeta), cada perdigón tiene
 // su propia dispersión: de cerca casi todos aciertan, de lejos se abren.
-function fireHitscan(def, player, level, cfg) {
+function fireHitscan(def, st, player, level, cfg) {
   let anyHit = false;
   for (let i = 0; i < def.pellets; i++) {
     // Dirección con dispersión aleatoria en [-spread, +spread]
@@ -192,7 +238,7 @@ function fireHitscan(def, player, level, cfg) {
     const target = hitscanEnemy(level, player.x, player.y, dx, dy, wall.dist);
 
     if (target) {
-      damageEnemy(target.enemy, def.damage, player, cfg);
+      damageEnemy(target.enemy, st.damage, player, cfg);
       anyHit = true;
       // Sangre entre el enemigo y el jugador para que se dibuje delante de él
       const d = target.dist - target.enemy.radius;
@@ -207,7 +253,9 @@ function fireHitscan(def, player, level, cfg) {
 }
 
 // Cohete: lo creamos un poco delante del jugador y lo mueve updateProjectiles.
-function fireRocket(def, player, level) {
+// La mejora de daño sube tanto el impacto directo como la explosión.
+function fireRocket(def, st, player, level) {
+  const dmgMult = st.damage / def.damage;
   const dx = Math.cos(player.angle);
   const dy = Math.sin(player.angle);
   level.projectiles.push({
@@ -217,21 +265,21 @@ function fireRocket(def, player, level) {
     y: player.y + dy * 0.3,
     dx, dy,
     speed: def.projectileSpeed,
-    damage: def.damage,
+    damage: st.damage,
     radius: 0.12,
-    splash: { radius: def.splashRadius, damage: def.splashDamage, self: def.selfDamage },
+    splash: { radius: def.splashRadius, damage: def.splashDamage * dmgMult, self: def.selfDamage },
   });
 }
 
 // Rayo que atraviesa: dañamos a todos los enemigos en la línea hasta la pared.
-function fireBeam(w, player, level, cfg) {
+function fireBeam(w, st, player, level, cfg) {
   const def = w.def;
   const dx = Math.cos(player.angle);
   const dy = Math.sin(player.angle);
   const wall = castRay(level.map, player.x, player.y, dx, dy, def.range);
   const targets = hitscanAllEnemies(level, player.x, player.y, dx, dy, wall.dist);
   for (const { enemy, dist } of targets) {
-    damageEnemy(enemy, def.damage, player, cfg);
+    damageEnemy(enemy, st.damage, player, cfg);
     const d = dist - enemy.radius;
     spawnEffect(level, 'sangre', player.x + dx * d, player.y + dy * d, cfg.fx.sparkLife);
   }
@@ -241,7 +289,7 @@ function fireBeam(w, player, level, cfg) {
 }
 
 // -------------------------------------------------------------
-// OBJETOS RECOGIBLES (armas y cajas de munición)
+// OBJETOS RECOGIBLES (armas, cajas de munición y monedas)
 // Devuelve un texto para mostrar en pantalla, o null.
 // -------------------------------------------------------------
 export function updatePickups(level, player, arsenal, cfg) {
@@ -255,6 +303,10 @@ export function updatePickups(level, player, arsenal, cfg) {
       const isNew = giveWeapon(arsenal, id, cfg);
       message = isNew ? `¡${cfg.weapons[id].name}! (tecla ${cfg.weapons[id].slot})` : `+ munición: ${cfg.weapons[id].name}`;
       if (isNew) switchTo(arsenal, id, cfg); // la sacas al recogerla
+    } else if (s.pickup.money) {
+      player.money += s.pickup.money;
+      player.stats.coins += s.pickup.money;
+      message = `+${s.pickup.money} ORO`;
     } else if (s.pickup.ammo) {
       for (const w of Object.values(arsenal.weapons)) {
         w.reserve += Math.ceil(w.def.startReserve * cfg.ammoBoxFraction);

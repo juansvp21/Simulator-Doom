@@ -16,4 +16,6 @@ Todo el arte del juego se genera por código en `src/textures.js`. No se usan im
 | Pistola, escopeta, ametralladora, lanzacohetes y cetro (normal y disparando) | Imágenes 160×140 | Polígonos con la API de canvas 2D |
 | Cohete, explosión (4 fotogramas), armas en el suelo, caja de munición | Sprites 64×64 | Canvas 2D; las armas del suelo reutilizan su imagen en miniatura |
 
+| Moneda (4 fotogramas girando), portal (abierto animado y sellado) | Sprites 64×64 | Elipses y arcos con la API de canvas 2D |
+
 Si en el futuro se añaden assets externos, deben tener licencia **CC0** y su fuente se anotará en esta tabla.

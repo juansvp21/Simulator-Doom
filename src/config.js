@@ -115,6 +115,44 @@ export const CONFIG = {
   // Cajas de munición: dan esta fracción de startReserve a cada arma que tengas
   ammoBoxFraction: 0.5,
 
+  // ---------------------------------------------------------
+  // ECONOMÍA
+  // ---------------------------------------------------------
+  // Oro que suelta cada enemigo al morir
+  coins: { zombie: 15, zombieRapido: 20, demonio: 40 },
+
+  // Bono al terminar un nivel:
+  //  tiempo:    timePerSecond de oro por cada segundo por debajo de parTime
+  //  precisión: accuracyMax * (aciertos / disparos)
+  levelBonus: { parTime: 180, timePerSecond: 1, accuracyMax: 150 },
+
+  // Tienda: precio de cada arma
+  shop: {
+    weaponPrices: { escopeta: 250, ametralladora: 450, lanzacohetes: 700, especial: 1100 },
+    // Paquetes de munición: amount balas por price de oro
+    ammo: {
+      pistola: { amount: 24, price: 15 },
+      escopeta: { amount: 12, price: 30 },
+      ametralladora: { amount: 60, price: 40 },
+      lanzacohetes: { amount: 4, price: 60 },
+      especial: { amount: 5, price: 80 },
+    },
+    medkit: { amount: 50, price: 60 },  // botiquín: +50 de vida
+    armor: { amount: 50, price: 80 },   // armadura: +50
+  },
+
+  // Mejoras por arma: 3 niveles de cada estadística.
+  //   perLevel = cuánto cambia por nivel (0.25 = +25 %)
+  //   prices   = precio de los niveles 1, 2 y 3
+  // Cada arma multiplica esos precios por su upgradeCost (las potentes cuestan más).
+  upgrades: {
+    damage:     { label: 'Daño',     perLevel: 0.25,  prices: [100, 200, 350] },
+    fireRate:   { label: 'Cadencia', perLevel: 0.2,   prices: [100, 200, 350] },
+    magSize:    { label: 'Cargador', perLevel: 0.25,  prices: [80, 160, 280] },
+    reloadTime: { label: 'Recarga',  perLevel: -0.15, prices: [80, 160, 280] },
+  },
+  upgradeCost: { pistola: 1, escopeta: 1.2, ametralladora: 1.3, lanzacohetes: 1.6, especial: 2 },
+
   // Efectos visuales del arma
   fx: {
     flashTime: 0.06,     // duración del fogonazo (s)
@@ -131,6 +169,7 @@ export const CONFIG = {
     explosionLight: 0.8, // cuánto ilumina una explosión
     pickupRadius: 0.6,   // distancia para recoger objetos
     messageTime: 2,      // segundos que se muestra un aviso ("¡ESCOPETA!")
+    interactRadius: 1.2, // distancia para usar el portal con E
   },
 
   hud: {
@@ -161,5 +200,7 @@ export const CONFIG = {
     arma_lanzacohetes: { solid: false, radius: 0, pickup: { weapon: 'lanzacohetes' } },
     arma_especial: { solid: false, radius: 0, pickup: { weapon: 'especial' } },
     caja_municion: { solid: false, radius: 0, pickup: { ammo: true } },
+    moneda: { solid: false, radius: 0 },  // el valor lo lleva cada moneda (pickup.money)
+    portal: { solid: false, radius: 0, exit: true },
   },
 };

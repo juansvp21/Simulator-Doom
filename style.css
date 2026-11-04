@@ -47,3 +47,58 @@ body {
 #overlay .title { font-size: 2em; color: #d94a2b; letter-spacing: 4px; }
 #overlay .small { font-size: 0.7em; opacity: 0.8; }
 #overlay.hidden { display: none; }
+
+/* ---------- Resumen del nivel y tienda ---------- */
+#panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at center, #3c0a06, #0a0202);
+  border: 2px solid #8a1e12;
+  font-size: clamp(11px, 1.6vw, 15px);
+}
+#panel.hidden { display: none; }
+
+.screen { padding: 2.5% 3%; display: flex; flex-direction: column; gap: 12px; min-height: 100%; }
+.screen h1 { color: #ff5a2a; letter-spacing: 3px; font-size: 1.8em; text-align: center; }
+.screen h2 { color: #c0503a; font-size: 1em; border-bottom: 1px solid #5a1a12; padding-bottom: 4px; margin-bottom: 4px; }
+.screen small { color: #b09070; }
+
+.summary { align-items: center; justify-content: center; }
+.summary table { border-collapse: collapse; min-width: min(360px, 90%); }
+.summary td { padding: 5px 10px; border-bottom: 1px solid #3a1410; }
+.summary td:last-child { text-align: right; color: #ffcc66; }
+.summary tr.bonus td:last-child { color: #ffd84a; font-weight: bold; }
+
+.shop header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.shop .gold { color: #ffd84a; font-weight: bold; font-size: 1.3em; }
+.shop .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; }
+.shop section { background: rgba(0, 0, 0, 0.35); border: 1px solid #4a1a12; padding: 8px; }
+.shop .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px dashed #3a1410; }
+.shop .name { flex: 1; }
+.shop .pips { color: #ff7a2a; letter-spacing: 2px; }
+.shop .owned { color: #7aff7a; font-size: 0.85em; }
+.shop .sub { color: #ffcc66; margin: 4px 0; }
+.shop .tabs { display: flex; gap: 4px; }
+.shop footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.shop .notice { color: #ffd84a; }
+
+#panel button {
+  font: inherit;
+  font-weight: bold;
+  color: #ffcc66;
+  background: #3a1410;
+  border: 1px solid #8a1e12;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#panel button:hover:not(:disabled) { background: #5a1a12; color: #fff2c0; }
+#panel button:disabled { opacity: 0.35; cursor: not-allowed; }
+#panel button.primary { font-size: 1.1em; padding: 8px 18px; background: #8a1e12; color: #fff2c0; }
+#panel button.tab.active { background: #8a1e12; color: #fff2c0; }
+
+/* En pantallas estrechas las columnas se apilan */
+@media (max-width: 760px) {
+  .shop .cols { grid-template-columns: 1fr; }
+}

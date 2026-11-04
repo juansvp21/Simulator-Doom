@@ -684,6 +684,52 @@ function ammoBox() {
   ];
 }
 
+// Moneda de oro que gira: 4 fotogramas estrechando la elipse
+// (ancho = cos del ángulo de giro, el truco clásico de la "moneda 2D").
+function coinFrames() {
+  return [1, 0.65, 0.2, 0.65].map((w, f) =>
+    drawSprite((g) => {
+      const rx = Math.max(1, 7 * w);
+      g.fillStyle = '#a06a10';
+      g.beginPath(); g.ellipse(32, 54, rx, 7, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = f === 2 ? '#c89020' : '#ffd84a';
+      g.beginPath(); g.ellipse(32, 54, Math.max(0.5, rx - 1.5), 5.5, 0, 0, Math.PI * 2); g.fill();
+      if (w > 0.5) {
+        g.fillStyle = '#a06a10';
+        g.fillRect(31, 51, 2, 6); // marca central
+      }
+    }, true)
+  );
+}
+
+// Portal de salida: anillo que gira (fotogramas 0-3) y versión apagada (4).
+function portalFrames() {
+  const ring = (g, phase, open) => {
+    // Base de piedra
+    g.fillStyle = '#2a2224';
+    g.fillRect(14, 58, 36, 6);
+    // Interior
+    g.fillStyle = open ? '#3a0a40' : '#120a10';
+    g.beginPath(); g.ellipse(32, 34, 13, 22, 0, 0, Math.PI * 2); g.fill();
+    if (open) {
+      // Remolino: arcos que rotan con la fase
+      g.strokeStyle = '#c060ff';
+      g.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const a = phase + (i * Math.PI * 2) / 3;
+        g.beginPath(); g.ellipse(32, 34, 9 - i * 2.5, 16 - i * 4, 0, a, a + 2); g.stroke();
+      }
+    }
+    // Marco
+    g.strokeStyle = open ? '#ff6a1a' : '#4a3a3a';
+    g.lineWidth = 3;
+    g.beginPath(); g.ellipse(32, 34, 15, 24, 0, 0, Math.PI * 2); g.stroke();
+  };
+  const open = [0, 1, 2, 3].map((f) => drawSprite((g) => ring(g, (f * Math.PI) / 2, true), true));
+  const locked = drawSprite((g) => ring(g, 0, false));
+  return [...open, locked];
+}
+
 // ---------- Punto de entrada ----------
 
 export function buildAssets() {
@@ -717,6 +763,8 @@ export function buildAssets() {
       arma_lanzacohetes: weaponPickup(viewModels.lanzacohetes),
       arma_especial: weaponPickup(viewModels.especial),
       caja_municion: ammoBox(),
+      moneda: coinFrames(),
+      portal: portalFrames(),
     },
     viewModels,
   };

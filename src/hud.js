@@ -4,6 +4,8 @@
 // Se dibuja con la API normal de canvas 2D después de putImageData.
 // =============================================================
 
+import { weaponStats } from './weapons.js';
+
 // ---------------------------------------------------------
 // ARMA EN PRIMERA PERSONA
 // Su posición combina tres movimientos:
@@ -27,7 +29,7 @@ export function drawWeapon(ctx, arsenal, player, assets, cfg) {
   const recoil = (weapon.recoilT / fx.recoilTime) * fx.recoilKick; // 1 -> 0
   let reloadDrop = 0;
   if (weapon.reloadT > 0) {
-    const progress = 1 - weapon.reloadT / weapon.def.reloadTime; // 0 -> 1
+    const progress = 1 - weapon.reloadT / weaponStats(weapon, cfg).reloadTime; // 0 -> 1
     reloadDrop = Math.sin(progress * Math.PI) * 90;
   }
   if (arsenal.switchT > 0) {
@@ -121,12 +123,14 @@ export function drawDamage(ctx, player, cfg) {
 }
 
 // Contador de enemigos en la esquina superior derecha
-export function drawEnemyCounter(ctx, level, cfg) {
+export function drawEnemyCounter(ctx, level, levelNumber, cfg) {
   const alive = level.enemies.filter((e) => e.state !== 'dead').length;
   ctx.textAlign = 'right';
   ctx.font = 'bold 12px monospace';
+  ctx.fillStyle = '#c0503a';
+  ctx.fillText(`CÍRCULO ${levelNumber}`, cfg.render.width - 8, 16);
   ctx.fillStyle = alive ? '#ffcc66' : '#7aff7a';
-  ctx.fillText(alive ? `ENEMIGOS ${alive}/${level.enemies.length}` : 'ZONA LIMPIA', cfg.render.width - 8, 16);
+  ctx.fillText(alive ? `ENEMIGOS ${alive}/${level.enemies.length}` : 'PORTAL ABIERTO', cfg.render.width - 8, 30);
   ctx.textAlign = 'left';
 }
 

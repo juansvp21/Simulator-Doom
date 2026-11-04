@@ -299,6 +299,14 @@ export function updateEnemies(level, player, dt, cfg) {
 
   for (const e of level.enemies) {
     if (e.state === 'dead') {
+      // Al morir suelta su oro (una sola vez)
+      if (!e.dropped) {
+        e.dropped = true;
+        const value = cfg.coins[e.type] ?? 0;
+        if (value > 0) {
+          level.sprites.push({ type: 'moneda', x: e.x, y: e.y, solid: false, radius: 0, pickup: { money: value } });
+        }
+      }
       e.deathT += dt;
       const step = Math.floor(e.deathT / cfg.ai.deathFrameTime);
       e.frame = Math.min(ENEMY_FRAME.CORPSE, ENEMY_FRAME.DEATH1 + step);
