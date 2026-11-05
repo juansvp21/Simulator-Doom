@@ -1,5 +1,6 @@
 // =============================================================
-// map.js — El mundo es una cuadrícula. Cada número es una casilla:
+// map.js — El mundo es una cuadrícula. Cada número es una casilla
+// (los niveles se escriben como texto en levels.js y se convierten aquí):
 //   0 = vacío (se puede caminar)
 //   1 = roca volcánica · 2 = ladrillo infernal · 3 = muro de calaveras
 //   4 = hierro rúnico   · 5 = lava (animada, brilla)
@@ -7,60 +8,6 @@
 // =============================================================
 
 import { createEnemy } from './enemies.js';
-
-export const TEST_LEVEL = {
-  grid: [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,0,2,2,0,0,0,0,0,0,3,3,0,0,1],
-    [1,0,0,2,0,0,0,1,0,0,0,0,3,0,0,1],
-    [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,1,1,0,1,1,1,5,1,1,0,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,4,0,4,0,4,0,0,4,0,4,0,4,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1],
-    [1,0,0,0,0,0,0,0,5,0,0,0,0,0,0,1],
-    [1,0,3,3,3,0,0,0,5,0,0,1,1,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  ],
-  // Decoración: x, y en casillas (.5 = centro de la casilla)
-  sprites: [
-    { type: 'brasero', x: 5.5, y: 1.5 },
-    { type: 'estaca', x: 5.5, y: 4.5 },
-    { type: 'brasero', x: 14.5, y: 1.5 },
-    { type: 'cristal', x: 10.5, y: 2.5 },
-    { type: 'brasero', x: 1.5, y: 7.5 },
-    { type: 'brasero', x: 14.5, y: 7.5 },
-    { type: 'cristal', x: 7.5, y: 9.5 },
-    { type: 'cristal', x: 8.5, y: 9.5 },
-    { type: 'estaca', x: 3.5, y: 10.5 },
-    { type: 'estaca', x: 14.5, y: 10.5 },
-    { type: 'brasero', x: 1.5, y: 12.5 },
-    { type: 'estaca', x: 6.5, y: 14.5 },
-    { type: 'cristal', x: 14.5, y: 14.5 },
-    // Munición para recoger (las armas se compran en la tienda)
-    { type: 'caja_municion', x: 1.5, y: 10.5 },
-    { type: 'caja_municion', x: 10.5, y: 12.5 },
-    { type: 'caja_municion', x: 9.5, y: 3.5 },
-    // Salida: se abre al eliminar a todos los enemigos y se usa con E
-    { type: 'portal', x: 13.5, y: 12.5 },
-  ],
-  // Enemigos: zombie = Condenado, zombieRapido = Poseído, demonio = Demonio ígneo
-  enemies: [
-    { type: 'zombie', x: 9.5, y: 1.5 },
-    { type: 'demonio', x: 12.5, y: 4.5 },
-    { type: 'zombie', x: 5.5, y: 8.5 },
-    { type: 'zombie', x: 11.5, y: 7.5 },
-    { type: 'zombieRapido', x: 12.5, y: 8.5 },
-    { type: 'zombieRapido', x: 3.5, y: 12.5 },
-    { type: 'zombieRapido', x: 13.5, y: 13.5 },
-    { type: 'demonio', x: 10.5, y: 14.5 },
-  ],
-};
 
 export function createMap(grid) {
   return {
@@ -70,13 +17,20 @@ export function createMap(grid) {
   };
 }
 
-// Construye un nivel jugable: el mapa, los sprites con sus propiedades
-// (solid, radius) copiadas desde config.js, los enemigos y los proyectiles.
-export function createLevel(def, cfg) {
+// Construye un nivel jugable a partir de un nivel ya parseado (levels.js):
+// el mapa, los sprites con sus propiedades (solid, radius, pickup...)
+// copiadas desde config.js, los enemigos y los proyectiles.
+// levelIndex (0, 1, 2...) sube la dificultad de los enemigos en cada círculo.
+export function createLevel(def, cfg, levelIndex = 0) {
   return {
+    name: def.name,
+    fog: def.fog,
+    ambient: def.ambient,
+    start: def.start,
+    bossSpawn: def.bossSpawn,
     map: createMap(def.grid),
     sprites: def.sprites.map((s) => ({ ...cfg.sprites[s.type], ...s })),
-    enemies: (def.enemies ?? []).map((e) => createEnemy(e.type, e.x, e.y, cfg)),
+    enemies: def.enemies.map((e) => createEnemy(e.type, e.x, e.y, cfg, levelIndex)),
     projectiles: [],
   };
 }

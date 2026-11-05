@@ -11,6 +11,7 @@
 // =============================================================
 
 import { giveWeapon, weaponStats } from './weapons.js';
+import { playSound } from './audio.js';
 
 // ---------------------------------------------------------
 // 1) LÓGICA DE COMPRA
@@ -91,10 +92,11 @@ export function computeLevelSummary(player, level, cfg) {
 
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
-export function showSummary(panel, summary, levelNumber, onContinue) {
+export function showSummary(panel, summary, levelName, onContinue) {
   panel.innerHTML = `
     <div class="screen summary">
-      <h1>CÍRCULO ${levelNumber} SUPERADO</h1>
+      <h1>${levelName}</h1>
+      <h2>SUPERADO</h2>
       <table>
         <tr><td>Tiempo</td><td>${fmtTime(summary.time)}</td></tr>
         <tr><td>Bajas</td><td>${summary.kills} / ${summary.totalEnemies}</td></tr>
@@ -114,7 +116,7 @@ export function showSummary(panel, summary, levelNumber, onContinue) {
 // Pips de nivel de mejora: ●●○
 const pips = (level, max) => '●'.repeat(level) + '○'.repeat(max - level);
 
-export function openShop(panel, player, arsenal, cfg, nextLevel, onContinue) {
+export function openShop(panel, player, arsenal, cfg, nextLevelName, onContinue) {
   // Arma seleccionada en la columna de mejoras
   let selected = arsenal.current;
   let notice = '';
@@ -203,7 +205,7 @@ export function openShop(panel, player, arsenal, cfg, nextLevel, onContinue) {
         </div>
         <footer>
           <span class="notice">${notice}</span>
-          <button class="primary" data-action="continue">DESCENDER AL CÍRCULO ${nextLevel} ▶</button>
+          <button class="primary" data-action="continue">DESCENDER · ${nextLevelName} ▶</button>
         </footer>
       </div>`;
   }
@@ -225,11 +227,28 @@ export function openShop(panel, player, arsenal, cfg, nextLevel, onContinue) {
       case 'continue': onContinue(); return;
     }
     if (!ok) notice = 'No te alcanza el oro';
+    else if (type !== 'select') playSound('compra');
     render();
   };
 
   render();
   panel.classList.remove('hidden');
+}
+
+// Pantalla final tras el Círculo VII
+export function showGameComplete(panel, player, onNewGame) {
+  panel.innerHTML = `
+    <div class="screen summary">
+      <h1>HAS SUPERADO LOS 7 CÍRCULOS</h1>
+      <p>Los siete pecados aún esperan en sus tronos, y más allá, un arcángel.<br>
+      <small>(Los jefes llegan en la Fase 7B)</small></p>
+      <table><tr><td>Oro final</td><td>${player.money}</td></tr></table>
+      <button class="primary" data-action="new">NUEVA PARTIDA ▶</button>
+    </div>`;
+  panel.classList.remove('hidden');
+  panel.onclick = (e) => {
+    if (e.target.closest('[data-action="new"]')) onNewGame();
+  };
 }
 
 export function closePanel(panel) {

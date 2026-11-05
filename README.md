@@ -21,6 +21,7 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - **R**: recargar (y reintentar al morir)
 - **1-5** o **rueda del ratón**: cambiar de arma
 - **E**: cruzar el portal de salida (se abre al eliminar a todos los enemigos)
+- **M**: activar / desactivar el sonido
 - **Esc**: soltar el ratón
 
 ## Estado
@@ -31,5 +32,6 @@ y abre la dirección que muestra (normalmente http://localhost:3000).
 - [x] Fase 4: enemigos con IA (Condenado, Poseído, Demonio ígneo), daño y muerte
 - [x] Fase 5: escopeta, ametralladora, lanzacohetes, Cetro del Abismo y cambio de arma
 - [x] Fase 6: monedas, portal de salida, bonos, tienda del Mercader de Almas y mejoras
-- [ ] Fase 7: niveles, jefe, sonido y guardado
+- [x] Fase 7A: los 7 círculos (uno por pecado), dificultad creciente, sonido sintetizado y guardado automático
+- [ ] Fase 7B: jefes de los 7 pecados, ángeles y el arcángel final
 - [ ] Fase 8: pulido

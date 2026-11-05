@@ -684,6 +684,33 @@ function ammoBox() {
   ];
 }
 
+// Botiquín: caja de hueso con una cruz roja
+function medkit() {
+  return [
+    drawSprite((g) => {
+      g.fillStyle = '#d8ccb0';
+      g.fillRect(22, 48, 20, 15);
+      g.fillStyle = '#8a7a60';
+      g.fillRect(22, 61, 20, 2);
+      g.fillStyle = '#c01810';
+      g.fillRect(30, 50, 4, 11);
+      g.fillRect(26, 54, 12, 3);
+    }),
+  ];
+}
+
+// Fragmento de armadura: escudo de hierro con borde rúnico
+function armorShard() {
+  return [
+    drawSprite((g) => {
+      poly(g, [[22, 44], [42, 44], [42, 54], [32, 63], [22, 54]], '#6a6468');
+      poly(g, [[25, 47], [39, 47], [39, 53], [32, 60], [25, 53]], '#3e383c');
+      g.fillStyle = '#ff6a1a';
+      g.fillRect(31, 49, 2, 8);
+    }, true),
+  ];
+}
+
 // Moneda de oro que gira: 4 fotogramas estrechando la elipse
 // (ancho = cos del ángulo de giro, el truco clásico de la "moneda 2D").
 function coinFrames() {
@@ -764,6 +791,8 @@ export function buildAssets() {
       arma_especial: weaponPickup(viewModels.especial),
       caja_municion: ammoBox(),
       moneda: coinFrames(),
+      botiquin: medkit(),
+      escudo: armorShard(),
       portal: portalFrames(),
     },
     viewModels,

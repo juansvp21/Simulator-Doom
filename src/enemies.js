@@ -17,9 +17,18 @@
 
 import { castRay, getTile, isWall } from './map.js';
 import { ENEMY_FRAME } from './textures.js';
+import { playSound } from './audio.js';
 
-export function createEnemy(type, x, y, cfg) {
-  const def = cfg.enemies[type];
+// levelIndex sube la dificultad: cada círculo los enemigos tienen más vida
+// y hacen más daño (porcentajes en config.difficulty).
+export function createEnemy(type, x, y, cfg, levelIndex = 0) {
+  const base = cfg.enemies[type];
+  const d = cfg.difficulty;
+  const def = {
+    ...base,
+    health: Math.round(base.health * (1 + d.healthPerLevel * levelIndex)),
+    damage: Math.round(base.damage * (1 + d.damagePerLevel * levelIndex)),
+  };
   return {
     type, def, x, y,
     homeX: x, homeY: y,            // punto de inicio (centro de su patrulla)
@@ -177,6 +186,17 @@ function pickPatrolTarget(map, e, cfg) {
 }
 
 // -------------------------------------------------------------
+// ALERTA: patrol -> chase. Centralizado aquí para que el gruñido suene
+// una sola vez, venga de verte, de oír un disparo o de recibir daño.
+// -------------------------------------------------------------
+function alertEnemy(e, player) {
+  if (e.state !== 'patrol') return;
+  e.state = 'chase';
+  e.lastSeenX = player.x; e.lastSeenY = player.y; e.lostT = 0;
+  playSound(`alerta_${e.type}`, e);
+}
+
+// -------------------------------------------------------------
 // DAÑO
 // -------------------------------------------------------------
 export function damageEnemy(e, amount, player, cfg) {
@@ -190,10 +210,12 @@ export function damageEnemy(e, amount, player, cfg) {
     e.solid = false;
     e.deathT = 0;
     player.stats.kills++;
+    playSound('enemigo_muerte', e);
     return;
   }
+  playSound('enemigo_dolor', e);
   // Si le disparan mientras patrulla, va a por el jugador
-  if (e.state === 'patrol') e.state = 'chase';
+  alertEnemy(e, player);
   e.lastSeenX = player.x; e.lastSeenY = player.y; e.lostT = 0;
 }
 
@@ -204,6 +226,7 @@ export function damagePlayer(player, amount, cfg) {
   player.armor -= absorbed;
   player.health -= amount - absorbed;
   player.hurtT = cfg.player.hurtFlash;
+  playSound('dolor_jugador');
   if (player.health <= 0) {
     player.health = 0;
     player.dead = true;
@@ -214,10 +237,7 @@ export function damagePlayer(player, amount, cfg) {
 export function alertEnemies(level, player, cfg) {
   for (const e of level.enemies) {
     if (e.state !== 'patrol') continue;
-    if (Math.hypot(e.x - player.x, e.y - player.y) < cfg.ai.hearRange) {
-      e.state = 'chase';
-      e.lastSeenX = player.x; e.lastSeenY = player.y; e.lostT = 0;
-    }
+    if (Math.hypot(e.x - player.x, e.y - player.y) < cfg.ai.hearRange) alertEnemy(e, player);
   }
 }
 
@@ -268,6 +288,7 @@ export function hitscanAllEnemies(level, x, y, dx, dy, maxDist) {
 // -------------------------------------------------------------
 export function explode(level, player, x, y, splash, cfg) {
   spawnEffect(level, 'explosion', x, y, cfg.fx.explosionLife);
+  playSound('explosion', { x, y });
   level.lightT = cfg.fx.explosionLife; // la explosión ilumina la escena
 
   const reaches = (tx, ty) => {
@@ -339,7 +360,7 @@ function updateEnemy(level, player, e, dt, cfg) {
 
   switch (e.state) {
     case 'patrol': {
-      if (sees) { e.state = 'chase'; break; }
+      if (sees) { alertEnemy(e, player); break; }
       e.patrolT -= dt;
       const arrived = Math.hypot(e.patrolX - e.x, e.patrolY - e.y) < 0.1;
       if (arrived || e.patrolT <= 0) pickPatrolTarget(level.map, e, cfg);
@@ -383,6 +404,7 @@ function updateEnemy(level, player, e, dt, cfg) {
       } else if (sees && dist <= def.attackRange * 1.3) {
         // Golpe cuerpo a cuerpo: un poco de margen por si te alejaste un pelín
         damagePlayer(player, def.damage, cfg);
+        playSound('golpe', e);
       }
       e.cooldown = def.attackCooldown;
       e.state = 'chase';
@@ -407,6 +429,7 @@ function shootFireball(level, e, player, cfg) {
   const dx = player.x - e.x;
   const dy = player.y - e.y;
   const d = Math.hypot(dx, dy) || 1;
+  playSound('bola_fuego', e);
   level.projectiles.push({
     type: 'bolaFuego',
     x: e.x + (dx / d) * (e.radius + 0.1),

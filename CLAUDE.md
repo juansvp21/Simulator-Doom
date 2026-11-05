@@ -30,7 +30,8 @@ style.css
 src/
   main.js        # arranque y bucle del juego (requestAnimationFrame + delta time)
   input.js       # teclado y ratón (Pointer Lock)
-  map.js         # mapas como matrices de números
+  levels.js      # los 7 círculos escritos como texto + parser
+  map.js         # mapa como matriz de números, colisiones y castRay
   raycaster.js   # render de paredes, suelo/techo y sprites
   textures.js    # texturas y sprites generados por código
   config.js      # valores de balance y ajustes
@@ -72,5 +73,7 @@ src/
 4. Enemigos con IA, daño y muerte.
 5. Resto de armas y cambio de arma.
 6. Dinero, tienda y sistema de mejoras.
-7. Niveles, jefe, sonido y guardado.
+7. Niveles, jefe, sonido y guardado. Dividida en:
+   - 7A: los 7 círculos, dificultad creciente, sonido y guardado.
+   - 7B: jefes de los 7 pecados, ángeles y el arcángel final.
 8. Pulido: menú, pausa, opciones de sensibilidad, balance.

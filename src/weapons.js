@@ -13,6 +13,7 @@
 import { isDown, wasPressed, consumeWheel } from './input.js';
 import { castRay } from './map.js';
 import { hitscanEnemy, hitscanAllEnemies, damageEnemy, spawnEffect } from './enemies.js';
+import { playSound } from './audio.js';
 
 // ---------- Estado de UNA arma ----------
 function createWeaponState(cfg, id) {
@@ -114,6 +115,7 @@ export function switchTo(arsenal, id, cfg) {
   arsenal.weapons[arsenal.current].reloadT = 0; // cambiar de arma cancela la recarga
   arsenal.pending = id;
   arsenal.switchT = cfg.fx.switchTime;
+  playSound('cambio_arma');
 }
 
 // -------------------------------------------------------------
@@ -179,6 +181,7 @@ function updateWeapon(w, dt, player, level, cfg) {
   // --- Empezar a recargar con R ---
   if (wasPressed('KeyR') && w.mag < st.magSize && w.reserve > 0) {
     w.reloadT = st.reloadTime;
+    playSound('recarga');
     return null;
   }
 
@@ -196,8 +199,8 @@ function updateWeapon(w, dt, player, level, cfg) {
 
   if (w.mag === 0) {
     // Cargador vacío: recarga automática si quedan balas; si no, aviso
-    if (w.reserve > 0) w.reloadT = st.reloadTime;
-    else w.messageT = 1;
+    if (w.reserve > 0) { w.reloadT = st.reloadTime; playSound('recarga'); }
+    else { w.messageT = 1; playSound('vacio'); }
     return null;
   }
 
@@ -215,6 +218,7 @@ function fire(w, st, player, level, cfg) {
   w.recoilT = fx.recoilTime;
   w.flashT = fx.flashTime;
   player.stats.shots++;
+  playSound(w.id); // cada arma tiene su receta en audio.js
 
   if (def.kind === 'projectile') fireRocket(def, st, player, level);
   else if (def.kind === 'beam') fireBeam(w, st, player, level, cfg);
@@ -303,15 +307,28 @@ export function updatePickups(level, player, arsenal, cfg) {
       const isNew = giveWeapon(arsenal, id, cfg);
       message = isNew ? `¡${cfg.weapons[id].name}! (tecla ${cfg.weapons[id].slot})` : `+ munición: ${cfg.weapons[id].name}`;
       if (isNew) switchTo(arsenal, id, cfg); // la sacas al recogerla
+      playSound('municion');
+    } else if (s.pickup.health) {
+      if (player.health >= cfg.player.maxHealth) continue; // lleno: se queda en el suelo
+      player.health = Math.min(cfg.player.maxHealth, player.health + s.pickup.health);
+      message = `+${s.pickup.health} SALUD`;
+      playSound('salud');
+    } else if (s.pickup.armor) {
+      if (player.armor >= cfg.player.maxArmor) continue;
+      player.armor = Math.min(cfg.player.maxArmor, player.armor + s.pickup.armor);
+      message = `+${s.pickup.armor} ARMADURA`;
+      playSound('salud');
     } else if (s.pickup.money) {
       player.money += s.pickup.money;
       player.stats.coins += s.pickup.money;
       message = `+${s.pickup.money} ORO`;
+      playSound('moneda');
     } else if (s.pickup.ammo) {
       for (const w of Object.values(arsenal.weapons)) {
         w.reserve += Math.ceil(w.def.startReserve * cfg.ammoBoxFraction);
       }
       message = '+ MUNICIÓN';
+      playSound('municion');
     }
     s.taken = true;
   }

@@ -61,6 +61,9 @@ export const CONFIG = {
     },
   },
 
+  // Dificultad: en cada círculo los enemigos tienen +12 % de vida y +8 % de daño
+  difficulty: { healthPerLevel: 0.12, damagePerLevel: 0.08 },
+
   // Comportamiento general de la IA
   ai: {
     patrolSpeed: 0.45,    // fracción de la velocidad al patrullar
@@ -172,6 +175,14 @@ export const CONFIG = {
     interactRadius: 1.2, // distancia para usar el portal con E
   },
 
+  // Sonido (Web Audio). Volúmenes de 0 a 1. M silencia/activa.
+  audio: {
+    master: 0.6,
+    sfx: 0.8,
+    ambient: 0.25,
+    hearDistance: 14, // a partir de aquí los enemigos no se oyen
+  },
+
   hud: {
     height: 44,          // alto de la barra inferior (px de resolución interna)
     lowHealth: 25,       // por debajo de esto la vida parpadea en rojo
@@ -201,6 +212,8 @@ export const CONFIG = {
     arma_especial: { solid: false, radius: 0, pickup: { weapon: 'especial' } },
     caja_municion: { solid: false, radius: 0, pickup: { ammo: true } },
     moneda: { solid: false, radius: 0 },  // el valor lo lleva cada moneda (pickup.money)
+    botiquin: { solid: false, radius: 0, pickup: { health: 25 } },
+    escudo: { solid: false, radius: 0, pickup: { armor: 25 } },
     portal: { solid: false, radius: 0, exit: true },
   },
 };

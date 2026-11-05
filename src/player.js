@@ -104,12 +104,12 @@ export function updatePlayer(p, level, dt, cfg) {
   if (canStand(level, p.x, p.y + dy, p.radius)) p.y += dy;
 }
 
-// Coloca al jugador al inicio de un nivel nuevo SIN tocar lo que conserva
+// Coloca al jugador en el punto de inicio del nivel (start) SIN tocar lo que conserva
 // entre niveles (oro, vida, armadura). Las estadísticas sí empiezan de cero.
-export function resetPlayerForLevel(p, cfg) {
-  p.x = cfg.player.startX;
-  p.y = cfg.player.startY;
-  p.angle = cfg.player.startAngle;
+export function resetPlayerForLevel(p, cfg, start) {
+  p.x = start?.x ?? cfg.player.startX;
+  p.y = start?.y ?? cfg.player.startY;
+  p.angle = start?.angle ?? cfg.player.startAngle;
   updateVectors(p, cfg);
   p.stats = { shots: 0, hits: 0, kills: 0, coins: 0, time: 0 };
   p.hurtT = 0;

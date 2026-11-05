@@ -41,9 +41,11 @@ export function createRenderer(ctx, cfg, assets) {
 // ---------------------------------------------------------
 // r.flash (0..1) es la luz del fogonazo del arma: suma brillo extra que
 // también se apaga con la distancia, pero más despacio que la niebla.
+// Cada nivel puede tener su propia niebla (setFog); si no, se usa la de config.js.
 function makeShader(cfg, r) {
-  const [fr, fg, fb] = cfg.fog.color;
-  const density = cfg.fog.density;
+  const fog = r.fog ?? cfg.fog;
+  const [fr, fg, fb] = fog.color;
+  const density = fog.density;
   return {
     brightness: (dist) =>
       Math.min(1, Math.exp(-dist * density) + r.flash * Math.exp(-dist * 0.3)),
@@ -57,6 +59,13 @@ function makeShader(cfg, r) {
         (data[ti] * k + fr * inv);
     },
   };
+}
+
+// Cambia la niebla (color y densidad) al empezar un nivel. Borramos el
+// shader guardado para que el próximo frame lo cree con la niebla nueva.
+export function setFog(r, fog) {
+  r.fog = fog;
+  r.shader = null;
 }
 
 export function renderScene(r, player, level, time) {

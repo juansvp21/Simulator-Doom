@@ -63,6 +63,23 @@ export function drawWeapon(ctx, arsenal, player, assets, cfg) {
   ctx.drawImage(img, x, y, w, h);
 }
 
+// Nombre del círculo al entrar: grande en el centro, se desvanece
+export function drawLevelTitle(ctx, levelDef, alpha, cfg) {
+  if (alpha <= 0) return;
+  const W = cfg.render.width;
+  const y = cfg.render.height * 0.3;
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * alpha})`;
+  ctx.fillText(levelDef.name.toUpperCase(), W / 2 + 2, y + 2);
+  ctx.fillStyle = `rgba(255, 90, 42, ${alpha})`;
+  ctx.fillText(levelDef.name.toUpperCase(), W / 2, y);
+  ctx.font = 'italic 12px monospace';
+  ctx.fillStyle = `rgba(240, 220, 190, ${alpha})`;
+  ctx.fillText(levelDef.description, W / 2, y + 22);
+  ctx.textAlign = 'left';
+}
+
 // Aviso temporal en la parte superior (p. ej. al recoger un arma)
 export function drawMessage(ctx, text, alpha, cfg) {
   if (!text || alpha <= 0) return;

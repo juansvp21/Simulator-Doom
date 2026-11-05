@@ -18,4 +18,10 @@ Todo el arte del juego se genera por código en `src/textures.js`. No se usan im
 
 | Moneda (4 fotogramas girando), portal (abierto animado y sellado) | Sprites 64×64 | Elipses y arcos con la API de canvas 2D |
 
+| Botiquín, fragmento de armadura | Sprites 64×64 | Rectángulos y polígonos con la API de canvas 2D |
+
+## Sonido
+
+Todos los sonidos se sintetizan en tiempo real con Web Audio API en `src/audio.js` (osciladores, ruido blanco, filtros y envolventes). No se usan archivos de audio.
+
 Si en el futuro se añaden assets externos, deben tener licencia **CC0** y su fuente se anotará en esta tabla.

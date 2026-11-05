@@ -102,3 +102,18 @@ body {
 @media (max-width: 760px) {
   .shop .cols { grid-template-columns: 1fr; }
 }
+
+/* ---------- Menú inicial (Continuar / Nueva partida) ---------- */
+#menu { display: flex; flex-direction: column; gap: 10px; }
+#menu.hidden { display: none; }
+#overlay.choosing > p:nth-child(2) { display: none; } /* oculta "Haz clic para jugar" */
+#menu button {
+  font: inherit;
+  font-weight: bold;
+  color: #fff2c0;
+  background: #8a1e12;
+  border: 1px solid #ff5a2a;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+#menu button:hover { background: #b02a18; }

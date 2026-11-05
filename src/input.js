@@ -35,7 +35,11 @@ export function initInput(canvas, overlay) {
 
   // Pointer Lock: oculta el cursor y nos da movimiento relativo infinito.
   // El navegador solo lo permite tras un clic del usuario.
-  overlay.addEventListener('click', () => canvas.requestPointerLock());
+  // Mientras se elige en el menú inicial (clase "choosing"), un clic en el
+  // fondo no debe empezar a jugar: solo los botones del menú lo hacen.
+  overlay.addEventListener('click', () => {
+    if (!overlay.classList.contains('choosing')) canvas.requestPointerLock();
+  });
 
   document.addEventListener('mousedown', (e) => {
     if (!locked) {
